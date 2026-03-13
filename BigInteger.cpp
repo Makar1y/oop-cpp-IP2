@@ -17,19 +17,11 @@ private:
     struct BigIntegerData *previous;
 
 public:
-    BigIntegerData()
-    {
-        setAll(nullptr, nullptr, 0);
-    }
     BigIntegerData(long digits)
     {
         setAll(nullptr, nullptr, digits);
     }
-    BigIntegerData(BigIntegerData *previous, BigIntegerData *next)
-    {
-        setAll(previous, next, 0);
-    }
-    BigIntegerData(BigIntegerData *previous, BigIntegerData *next, long digits)
+    BigIntegerData(BigIntegerData *previous = nullptr, BigIntegerData *next = nullptr, long digits=0)
     {
         setAll(previous, next, digits);
     }
@@ -76,7 +68,7 @@ private:
     BigIntegerData *HigherDigits;
 
 public:
-    BigInteger(const string &number)
+    BigInteger(const string &number = "")
     {
         stringToNum(number);
     }
@@ -89,27 +81,33 @@ public:
     {
         return this->sign;
     }
+    
     BigIntegerData* getLowerDigits() const
     {
         return this->LowerDigits;
     }
+
     BigIntegerData* getHigherDigits() const
     {
         return this->HigherDigits;
     }
 
+
     void setSign(const bool sign)
     {
         this->sign = sign;
     }
+
     void setLowerDigits(BigIntegerData* const LowerDigits)
     {
         this->LowerDigits = LowerDigits;
     }
+
     void setHigherDigits(BigIntegerData* const HigherDigits)
     {
         this->HigherDigits = HigherDigits;
     }
+
 
     int stringToNum(const string &numberString)
     {
@@ -261,6 +259,12 @@ public:
             result *= num;
         }
         return result;
+    }
+
+
+    void operator=(BigInteger& source)
+    {
+        source.copy(this);
     }
 };
 
