@@ -21,7 +21,7 @@ public:
     {
         setAll(nullptr, nullptr, digits);
     }
-    BigIntegerData(BigIntegerData *previous = nullptr, BigIntegerData *next = nullptr, long digits=0)
+    BigIntegerData(BigIntegerData *previous = nullptr, BigIntegerData *next = nullptr, long digits = 0)
     {
         setAll(previous, next, digits);
     }
@@ -47,16 +47,24 @@ public:
     {
         this->previous = new BigIntegerData(previous, next, digits);
     }
+    void setPrevious(BigIntegerData *previous)
+    {
+        this->previous = previous;
+    }
+    void setNext(BigIntegerData *next)
+    {
+        this->next = next;
+    }
     void setDigits(long digits)
     {
         this->digits = digits;
     }
 
-    void setAll(BigIntegerData *previous, BigIntegerData *next, long digits)
+    void setAll(BigIntegerData *previous = nullptr, BigIntegerData *next = nullptr, long digits = 0)
     {
-        this->previous = previous;
-        this->next = next;
-        this->digits = digits;
+        setPrevious(previous);
+        setNext(next);
+        setDigits(digits);
     }
 };
 
@@ -81,34 +89,36 @@ public:
     {
         return this->sign;
     }
-    
-    BigIntegerData* getLowerDigits() const
+
+private:
+    BigIntegerData *getLowerDigits() const
     {
         return this->LowerDigits;
     }
 
-    BigIntegerData* getHigherDigits() const
+    BigIntegerData *getHigherDigits() const
     {
         return this->HigherDigits;
     }
 
-
+public:
     void setSign(const bool sign)
     {
         this->sign = sign;
     }
 
-    void setLowerDigits(BigIntegerData* const LowerDigits)
+private:
+    void setLowerDigits(BigIntegerData *const LowerDigits)
     {
         this->LowerDigits = LowerDigits;
     }
 
-    void setHigherDigits(BigIntegerData* const HigherDigits)
+    void setHigherDigits(BigIntegerData *const HigherDigits)
     {
         this->HigherDigits = HigherDigits;
     }
 
-
+public:
     int stringToNum(const string &numberString)
     {
         size_t numLength = numberString.length();
@@ -173,25 +183,21 @@ public:
         return result.str();
     }
 
-    int copy(BigInteger *dest) const
+    int copy(BigInteger &dest) const
     {
-        if (!dest)
-        {
-            throw std::invalid_argument("Cant copy to nonexisting object.");
-        }
-        dest->makeEmpty();
-        dest->setSign(getSign());
+        dest.makeEmpty();
+        dest.setSign(getSign());
 
         BigIntegerData *currSRC = getLowerDigits();
         if (!currSRC)
         {
-            dest->setLowerDigits(nullptr);
-            dest->setHigherDigits(nullptr);
+            dest.setLowerDigits(nullptr);
+            dest.setHigherDigits(nullptr);
             return 0;
         }
 
         BigIntegerData *currDEST = new BigIntegerData(nullptr, nullptr, 0);
-        dest->setLowerDigits(currDEST);
+        dest.setLowerDigits(currDEST);
 
         while (currSRC)
         {
@@ -207,7 +213,7 @@ public:
                 currSRC = currSRC->getNext();
             }
         }
-        dest->setHigherDigits(currDEST);
+        dest.setHigherDigits(currDEST);
         return 0;
     }
 
@@ -261,12 +267,263 @@ public:
         return result;
     }
 
-
-    void operator=(BigInteger& source)
+    BigInteger &operator=(const BigInteger &source)
     {
-        source.copy(this);
+        if (this != &source)
+        {
+            source.copy(*this);
+        }
+        return *this;
+    }
+
+    BigInteger &operator+=(const BigInteger &source)
+    {
+        addAbsolute(*this, source).copy(*this);
+        return *this;
+    }
+
+    BigInteger &operator-=(const BigInteger &source)
+    {
+    }
+
+    BigInteger &operator*=(const BigInteger &source)
+    {
+    }
+
+    BigInteger &operator/=(const BigInteger &source)
+    {
+    }
+
+    BigInteger &operator%=(const BigInteger &source)
+    {
+    }
+
+    BigInteger operator+(const BigInteger &b) const
+    {
+        BigInteger res;
+        if (getSign() == b.getSign())
+        {
+            res = addAbsolute(*this, b);
+            res.setSign(getSign());
+        }
+        else
+        {
+            int cmp = compare(b);
+            if (cmp == 0)
+            {
+                res = BigInteger();
+            }
+
+            if (cmp > 0)
+            {
+                res = subAbsolute(*this, b);
+                res.setSign(this->getSign());
+            }
+            else
+            {
+                res = subAbsolute(b, *this);
+                res.setSign(b.getSign());
+            }
+        }
+        return res;
+    }
+
+    BigInteger operator-(const BigInteger &source) const
+    {
+    }
+
+    BigInteger operator*(const BigInteger &source) const
+    {
+    }
+
+    BigInteger operator/(const BigInteger &source) const
+    {
+    }
+
+    BigInteger operator%(const BigInteger &source) const
+    {
+    }
+
+    bool operator==(const BigInteger &b) const
+    {
+        if (this != &b)
+        {
+            return !(bool)compare(b);
+        }
+        return 1;
+    }
+
+    bool operator!=(const BigInteger &b) const
+    {
+        if (this != &b)
+        {
+            return (bool)compare(b);
+        }
+        return 0;
+    }
+
+    bool operator<(const BigInteger &b) const
+    {
+        if (this != &b)
+        {
+            return compare(b) == -1;
+        }
+        return 0;
+    }
+
+    bool operator<=(const BigInteger &b) const
+    {
+        if (this != &b)
+        {
+            return compare(b) <= 0;
+        }
+        return 1;
+    }
+
+    bool operator>=(const BigInteger &b) const
+    {
+        if (this != &b)
+        {
+            return compare(b) >= 0;
+        }
+        return 1;
+    }
+
+    bool operator>(const BigInteger &b) const
+    {
+        if (this != &b)
+        {
+            return compare(b) == 1;
+        }
+        return 0;
+    }
+
+private:
+    int compare(const BigInteger &b) const
+    {
+        int countA = count(), countB = b.count();
+        if (countA > countB)
+            return 1;
+        if (countA < countB)
+            return -1;
+
+        BigIntegerData *curA = getHigherDigits();
+        BigIntegerData *curB = b.getHigherDigits();
+
+        while (curA && curB)
+        {
+            if (curA->getDigits() > curB->getDigits())
+                return 1;
+            if (curB->getDigits() > curA->getDigits())
+                return -1;
+            curA = curA->getPrevious();
+            curB = curB->getPrevious();
+        }
+        return 0;
+    }
+
+    BigInteger addAbsolute(const BigInteger &a, const BigInteger &b) const
+    {
+        BigInteger res = BigInteger();
+        BigIntegerData *curA = a.getLowerDigits(),
+                       *curB = b.getLowerDigits(),
+                       *lastNode = nullptr;
+        long long carry = 0;
+        long long limit = pow(BASE, BASE_POW);
+
+        while (curA || curB || carry)
+        {
+            long long sum = carry + (curA ? curA->getDigits() : 0) + (curB ? curB->getDigits() : 0);
+            carry = sum / limit;
+
+            BigIntegerData *dataNode = new BigIntegerData(sum % limit);
+
+            if (!res.getLowerDigits())
+            {
+                res.setLowerDigits(dataNode);
+            }
+            if (lastNode)
+            {
+                lastNode->setNext(dataNode);
+                dataNode->setPrevious(lastNode);
+            }
+            lastNode = dataNode;
+
+            if (curA)
+            {
+                curA = curA->getNext();
+            }
+            if (curB)
+            {
+                curB = curB->getNext();
+            }
+        }
+        res.setHigherDigits(lastNode);
+        return res;
+    }
+
+    BigInteger subAbsolute(const BigInteger &a, const BigInteger &b) const
+    {
+        BigInteger res = BigInteger();
+        BigIntegerData *curA = a.getLowerDigits(),
+                       *curB = b.getLowerDigits(),
+                       *lastNode = nullptr;
+        long long cary = 0;
+        long long limit = pow(BASE, BASE_POW);
+
+        while (curA)
+        {
+            long long valA = curA->getDigits();
+            long long valB = curB ? curB->getDigits() : 0;
+            long long difference = valA - valB - cary;
+
+            if (difference < 0)
+            {
+                difference += limit;
+                cary = 1;
+            }
+            else
+            {
+                cary = 0;
+            }
+
+            BigIntegerData *dataNode = new BigIntegerData(difference);
+
+            if (!res.getLowerDigits())
+            {
+                res.setLowerDigits(dataNode);
+            }
+            if (lastNode)
+            {
+                lastNode->setNext(dataNode);
+                dataNode->setPrevious(lastNode);
+            }
+            lastNode = dataNode;
+
+            curA = curA->getNext();
+            if (curB)
+            {
+                curB = curB->getNext();
+            }
+        }
+        res.setHigherDigits(lastNode);
+
+        while (res.getHigherDigits() && res.getHigherDigits()->getDigits() == 0 && res.getHigherDigits() != res.getLowerDigits())
+        {
+            res.setHigherDigits(res.getHigherDigits()->getPrevious());
+            delete res.getHigherDigits()->getNext();
+            res.getHigherDigits()->setNext(nullptr);
+        }
+        return res;
     }
 };
+
+
+
+
+
+
+
 
 
 BigInteger *clone(BigInteger *src)
@@ -282,166 +539,6 @@ BigInteger *clone(BigInteger *src)
         return dest;
     }
     return NULL;
-}
-
-int compareADTs(BigInteger *a, BigInteger *b)
-{
-    int countA = count(a), countB = count(b);
-    if (countA > countB)
-        return 1;
-    if (countB > countA)
-        return -1;
-
-    BigIntegerData *curA = a->HigherDigits;
-    BigIntegerData *curB = b->HigherDigits;
-
-    while (curA && curB)
-    {
-        if (curA->digits > curB->digits)
-            return 1;
-        if (curB->digits > curA->digits)
-            return -1;
-        curA = curA->previous;
-        curB = curB->previous;
-    }
-    return 0;
-}
-
-BigInteger *addAbsolute(BigInteger *a, BigInteger *b)
-{
-    BigInteger *res = Create();
-    BigIntegerData *curA = a->LowerDigits,
-                   *curB = b->LowerDigits,
-                   *lastNode = NULL;
-    long long carry = 0;
-    long long limit = myPow(BASE, BASE_POW);
-
-    while (curA || curB || carry)
-    {
-        long long sum = carry + (curA ? curA->digits : 0) + (curB ? curB->digits : 0);
-        carry = sum / limit;
-
-        BigIntegerData *dataNode = calloc(1, sizeof(BigIntegerData));
-        if (!dataNode)
-            return NULL;
-        dataNode->digits = sum % limit;
-
-        if (!res->LowerDigits)
-        {
-            res->LowerDigits = dataNode;
-        }
-        if (lastNode)
-        {
-            lastNode->next = dataNode;
-            dataNode->previous = lastNode;
-        }
-        lastNode = dataNode;
-
-        if (curA)
-        {
-            curA = curA->next;
-        }
-        if (curB)
-        {
-            curB = curB->next;
-        }
-    }
-    res->HigherDigits = lastNode;
-    return res;
-}
-
-BigInteger *subAbsolute(BigInteger *a, BigInteger *b)
-{
-    BigInteger *res = Create();
-    BigIntegerData *curA = a->LowerDigits,
-                   *curB = b->LowerDigits,
-                   *lastNode = NULL;
-    long long cary = 0;
-    long long limit = myPow(BASE, BASE_POW);
-
-    while (curA)
-    {
-        long long valA = curA->digits;
-        long long valB = curB ? curB->digits : 0;
-        long long difference = valA - valB - cary;
-
-        if (difference < 0)
-        {
-            difference += limit;
-            cary = 1;
-        }
-        else
-        {
-            cary = 0;
-        }
-
-        BigIntegerData *dataNode = calloc(1, sizeof(BigIntegerData));
-        if (!dataNode)
-            return NULL;
-        dataNode->digits = difference;
-
-        if (!res->LowerDigits)
-        {
-            res->LowerDigits = dataNode;
-        }
-        if (lastNode)
-        {
-            lastNode->next = dataNode;
-            dataNode->previous = lastNode;
-        }
-        lastNode = dataNode;
-
-        curA = curA->next;
-        if (curB)
-        {
-            curB = curB->next;
-        }
-    }
-    res->HigherDigits = lastNode;
-
-    while (res->HigherDigits && res->HigherDigits->digits == 0 && res->HigherDigits != res->LowerDigits)
-    {
-        res->HigherDigits = res->HigherDigits->previous;
-        free(res->HigherDigits->next);
-        res->HigherDigits->next = NULL;
-    }
-    return res;
-}
-
-BigInteger *BigIntegerAdd(BigInteger *a, BigInteger *b)
-{
-    if (!a || !b)
-        return NULL;
-
-    if (a->sign == b->sign)
-    {
-        BigInteger *res = addAbsolute(a, b);
-        res->sign = a->sign;
-        return res;
-    }
-    else
-    {
-        int cmp = compareADTs(a, b);
-        if (cmp == 0)
-        {
-            BigInteger *res = Create();
-            res->LowerDigits = res->HigherDigits = calloc(1, sizeof(BigIntegerData));
-            return res;
-        }
-
-        BigInteger *res;
-        if (cmp > 0)
-        {
-            res = subAbsolute(a, b);
-            res->sign = a->sign;
-        }
-        else
-        {
-            res = subAbsolute(b, a);
-            res->sign = b->sign;
-        }
-        return res;
-    }
 }
 
 BigInteger *BigIntegerSub(BigInteger *a, BigInteger *b)
@@ -765,11 +862,4 @@ BigInteger *BigIntegerMod(BigInteger *a, BigInteger *b)
         return NULL;
     }
     return _div(a, b, 1);
-}
-
-int main()
-{
-
-    BigInteger *test = new BigInteger("Test");
-    return 1;
 }
