@@ -6,7 +6,6 @@
 #include <vector>
 
 #include "BigInteger.h"
-#include "DEBUG.h"
 
 using std::string;
 
@@ -69,7 +68,7 @@ public:
     }
 };
 
-class BigInteger
+class BigInteger::Inner
 {
 private:
     bool sign;
@@ -77,15 +76,15 @@ private:
     BigIntegerData *HigherDigits;
 
 public:
-    BigInteger(const string &number = "")
+    Inner(const string &number = "")
     {
         stringToNum(number);
     }
-    BigInteger(const BigInteger &other)
+    Inner(const BigInteger &other)
     {
         other.copy(*this);
     }
-    BigInteger &operator=(const BigInteger &source)
+    Inner &operator=(const BigInteger &source)
     {
         if (this != &source)
         {
@@ -93,7 +92,7 @@ public:
         }
         return *this;
     }
-    ~BigInteger()
+    ~Inner()
     {
         this->makeEmpty();
     }
@@ -656,6 +655,72 @@ private:
     friend std::ostream &operator<<(std::ostream &out, const BigInteger &a);
     friend std::istream &operator>>(std::istream &in, BigInteger &a);
 };
+
+BigInteger::BigInteger(const string &number = "")
+{
+    impl = new BigInteger::Inner(&number);
+}
+BigInteger::BigInteger(const BigInteger &other)
+{
+    impl = new BigInteger::Inner(*(other.impl));
+}
+const BigInteger &BigInteger::operator=(const BigInteger &source)
+{
+    if (&source != this)
+    {
+        delete impl;
+        impl = new BigInteger::Inner(*(source.impl));
+    }
+    return source;
+}
+BigInteger::~BigInteger()
+{
+    delete impl;
+}
+
+bool BigInteger::getSign() const
+{
+    return impl->getSign();
+}
+BigIntegerData *BigInteger::getLowerDigits() const
+{
+    return impl->getLowerDigits();
+}
+BigIntegerData *BigInteger::getHigherDigits() const
+{
+    return impl->getHigherDigits();
+}
+
+void BigInteger::setSign(const bool sign)
+{
+    impl->setSign(sign);
+}
+
+int BigInteger::stringToNum(const string &numberString)
+{
+    return impl->stringToNum(numberString);
+}
+string BigInteger::toString() const
+{
+    return impl->toString();
+}
+int BigInteger::copy(BigInteger &dest) const
+{
+    return impl->copy(dest);
+}
+int BigInteger::count() const
+{
+    return impl->count();
+}
+void BigInteger::makeEmpty()
+{
+    return impl->makeEmpty();
+}
+bool BigInteger::isEmpty() const
+{
+    return impl->isEmpty();
+}
+
 
 void operator+=(BigInteger &dest, const BigInteger &src)
 {
