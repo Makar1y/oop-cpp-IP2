@@ -1,11 +1,15 @@
-#ifndef BIGINTEGER_H
-#define BIGINTEGER_H
+#ifndef BIGINTEGER_H_65654
+#define BIGINTEGER_H_65654
 
-#define BASE 10
-#define BASE_POW 9
+#define string std::string
 
-class BigInteger
+namespace BigInt
 {
+    #define BASE 10
+    #define BASE_POW 9
+
+    class BigInteger
+    {
     private:
         class Inner;
         Inner *impl;
@@ -19,8 +23,6 @@ class BigInteger
         ~BigInteger();
 
         bool getSign() const;
-        BigIntegerData *getLowerDigits() const;
-        BigIntegerData *getHigherDigits() const;
 
         void setSign(const bool sign);
 
@@ -53,6 +55,8 @@ class BigInteger
 
         friend std::ostream &operator<<(std::ostream &out, const BigInteger &a);
         friend std::istream &operator>>(std::istream &in, BigInteger &a);
-};
+    };
+}
 
+#undef string
 #endif
