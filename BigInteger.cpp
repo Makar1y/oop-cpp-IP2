@@ -282,10 +282,7 @@ int BigInteger::Inner::copy(Inner &dest) const
             currDEST->createNext(currDEST, nullptr, 0);
             currDEST = currDEST->getNext();
         }
-        else
-        {
-            currSRC = currSRC->getNext();
-        }
+        currSRC = currSRC->getNext();
     }
     dest.setHigherDigits(currDEST);
     return 0;
@@ -693,7 +690,7 @@ BigInteger BigInteger::Inner::divide(const BigInteger &a, const BigInteger &b, c
     return quotient;
 }
 
-// Public methods redirect
+// Public redirects
 
 BigInteger::BigInteger(const string &number = "")
 {
@@ -705,12 +702,11 @@ BigInteger::BigInteger(const BigInteger &other)
 }
 const BigInteger &BigInteger::operator=(const BigInteger &source)
 {
-    if (&source != this)
+    if (this != &source)
     {
-        delete impl;
-        impl = new BigInteger::Inner(*(source.impl));
+        *(this->impl) = *(source.impl);
     }
-    return source;
+    return *this;
 }
 BigInteger::~BigInteger()
 {
