@@ -11,9 +11,14 @@ namespace BigInt
 {
     using std::string;
 
-    ZeroDivisionException::ZeroDivisionException(const BigInteger &a, const BigInteger &b) : std::runtime_error("Zero division error: tried to divide " + a.toString() + " by " + b.toString() + "\n")
+    // Exceptions
+
+    ZeroDivisionException::ZeroDivisionException(const BigInteger &a, const BigInteger &b)
+        : std::runtime_error("Zero division error: tried to divide " + a.toString() + " by " + b.toString() + "\n")
     {
     }
+
+    // BigIntegerData Declaration
 
     class BigIntegerData
     {
@@ -23,58 +28,23 @@ namespace BigInt
         struct BigIntegerData *previous;
 
     public:
-        BigIntegerData(long digits)
-        {
-            setAll(nullptr, nullptr, digits);
-        }
-        BigIntegerData(BigIntegerData *previous = nullptr, BigIntegerData *next = nullptr, long digits = 0)
-        {
-            setAll(previous, next, digits);
-        }
+        BigIntegerData(long digits);
+        BigIntegerData(BigIntegerData *previous = nullptr, BigIntegerData *next = nullptr, long digits = 0);
 
-        BigIntegerData *getNext() const
-        {
-            return next;
-        }
-        BigIntegerData *getPrevious() const
-        {
-            return previous;
-        }
-        long getDigits() const
-        {
-            return digits;
-        }
+        void createNext(BigIntegerData *previous, BigIntegerData *next, long digits);
+        void createPrevious();
 
-        void createNext(BigIntegerData *previous, BigIntegerData *next, long digits)
-        {
-            this->next = new BigIntegerData(previous, next, digits);
-        }
-        void createPrevious()
-        {
-            this->previous = new BigIntegerData(previous, next, digits);
-        }
-        void setPrevious(BigIntegerData *previous)
-        {
-            this->previous = previous;
-        }
-        void setNext(BigIntegerData *next)
-        {
-            this->next = next;
-        }
-        void setDigits(long digits)
-        {
-            this->digits = digits;
-        }
+        BigIntegerData *getNext() const;
+        BigIntegerData *getPrevious() const;
+        long getDigits() const;
 
-        void setAll(BigIntegerData *previous = nullptr, BigIntegerData *next = nullptr, long digits = 0)
-        {
-            setPrevious(previous);
-            setNext(next);
-            setDigits(digits);
-        }
+        void setPrevious(BigIntegerData *previous);
+        void setNext(BigIntegerData *next);
+        void setDigits(long digits);
+        void setAll(BigIntegerData *previous = nullptr, BigIntegerData *next = nullptr, long digits = 0);
     };
 
-    // Declaration
+    // BigInteger Declaration
 
     class BigInteger::Inner
     {
@@ -143,7 +113,60 @@ namespace BigInt
         friend std::istream &operator>>(std::istream &in, BigInteger &a);
     };
 
-    // Implementation
+    // BigIntegerData Implementation
+
+    BigIntegerData::BigIntegerData(long digits)
+    {
+        setAll(nullptr, nullptr, digits);
+    }
+    BigIntegerData::BigIntegerData(BigIntegerData *previous, BigIntegerData *next, long digits)
+    {
+        setAll(previous, next, digits);
+    }
+
+    void BigIntegerData::createNext(BigIntegerData *previous, BigIntegerData *next, long digits)
+    {
+        this->next = new BigIntegerData(previous, next, digits);
+    }
+    void BigIntegerData::createPrevious()
+    {
+        this->previous = new BigIntegerData(previous, next, digits);
+    }
+
+    BigIntegerData *BigIntegerData::getNext() const
+    {
+        return next;
+    }
+    BigIntegerData *BigIntegerData::getPrevious() const
+    {
+        return previous;
+    }
+    long BigIntegerData::getDigits() const
+    {
+        return digits;
+    }
+
+    void BigIntegerData::setPrevious(BigIntegerData *previous)
+    {
+        this->previous = previous;
+    }
+    void BigIntegerData::setNext(BigIntegerData *next)
+    {
+        this->next = next;
+    }
+    void BigIntegerData::setDigits(long digits)
+    {
+        this->digits = digits;
+    }
+
+    void BigIntegerData::setAll(BigIntegerData *previous, BigIntegerData *next, long digits)
+    {
+        setPrevious(previous);
+        setNext(next);
+        setDigits(digits);
+    }
+
+    // BigInteger Implementation
 
     BigInteger::Inner::Inner(const string &number)
     {
@@ -693,7 +716,7 @@ namespace BigInt
         return quotient;
     }
 
-    // Public redirects
+    // BigInteger Public redirects
 
     BigInteger::BigInteger(const string &number)
     {
@@ -751,7 +774,7 @@ namespace BigInt
         return impl->isEmpty();
     }
 
-    // Operators implementation
+    // BigInteger Operators implementation
 
     BigInteger &operator+=(BigInteger &dest, const BigInteger &src)
     {
