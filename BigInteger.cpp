@@ -68,6 +68,8 @@ public:
     }
 };
 
+// Declaration
+
 class BigInteger::Inner
 {
 private:
@@ -76,560 +78,622 @@ private:
     BigIntegerData *HigherDigits;
 
 public:
-    Inner(const string &number = "")
+    Inner(const string &number = "");
+    Inner(const Inner &other);
+    Inner &operator=(const Inner &source);
+    ~Inner();
+
+    bool getSign() const;
+    BigIntegerData *getLowerDigits() const;
+    BigIntegerData *getHigherDigits() const;
+
+
+    void setSign(const bool sign);
+private:
+    void setLowerDigits(BigIntegerData *const LowerDigits);
+    void setHigherDigits(BigIntegerData *const HigherDigits);
+
+public:
+    int stringToNum(const string &numberString);
+    string BigInteger::Inner::toString() const;
+    int copy(Inner &dest) const;
+    int count() const;
+    void makeEmpty();
+    bool isEmpty() const;
+
+private:
+    static long long pow(const int num, const int pow);
+    static int compare(const BigInteger &a, const BigInteger &b);
+    void appendNode(const long digits);
+    void trimLeadingZeros();
+
+    static BigInteger addAbsolute(const BigInteger &a, const BigInteger &b);
+    static BigInteger subAbsolute(const BigInteger &a, const BigInteger &b);
+    static BigInteger multiply(const BigInteger &a, const BigInteger &b);
+    static BigInteger multiply(const BigInteger &a, const long b);
+    static BigInteger divide(const BigInteger &a, const BigInteger &b, const bool returnReminder);
+
+    friend void operator+=(BigInteger &dest, const BigInteger &src);
+    friend BigInteger &operator-=(BigInteger &dest, const BigInteger &src);
+    friend BigInteger &operator*=(BigInteger &dest, const BigInteger &src);
+    friend BigInteger &operator/=(BigInteger &dest, const BigInteger &src);
+    friend BigInteger &operator%=(BigInteger &dest, const BigInteger &src);
+
+    friend BigInteger operator+(const BigInteger &a, const BigInteger &b);
+    friend BigInteger operator-(const BigInteger &a, const BigInteger &b);
+    friend BigInteger operator-(const BigInteger &a);
+    friend BigInteger operator*(const BigInteger &a, const BigInteger &b);
+    friend BigInteger operator/(const BigInteger &a, const BigInteger &b);
+    friend BigInteger operator%(const BigInteger &a, const BigInteger &b);
+
+    friend bool operator==(const BigInteger &a, const BigInteger &b);
+    friend bool operator!=(const BigInteger &a, const BigInteger &b);
+    friend bool operator<(const BigInteger &a, const BigInteger &b);
+    friend bool operator<=(const BigInteger &a, const BigInteger &b);
+    friend bool operator>=(const BigInteger &a, const BigInteger &b);
+    friend bool operator>(const BigInteger &a, const BigInteger &b);
+
+    friend std::ostream &operator<<(std::ostream &out, const BigInteger &a);
+    friend std::istream &operator>>(std::istream &in, BigInteger &a);
+};
+
+// Implementation
+
+BigInteger::Inner::Inner(const string &number = "")
+{
+    stringToNum(number);
+}
+BigInteger::Inner::Inner(const Inner &other)
+{
+    other.copy(*this);
+}
+BigInteger::Inner & BigInteger::Inner::operator=(const Inner &source)
+{
+    if (this != &source)
     {
-        stringToNum(number);
+        source.copy(*this);
     }
-    Inner(const Inner &other)
+    return *this;
+}
+BigInteger::Inner::~Inner()
+{
+    this->makeEmpty();
+}
+
+
+bool BigInteger::Inner::getSign() const
+{
+    return this->sign;
+}
+
+BigIntegerData * BigInteger::Inner::getLowerDigits() const
+{
+    return this->LowerDigits;
+}
+
+BigIntegerData * BigInteger::Inner::getHigherDigits() const
+{
+    return this->HigherDigits;
+}
+
+
+void BigInteger::Inner::setSign(const bool sign)
+{
+    this->sign = sign;
+}
+
+void BigInteger::Inner::setLowerDigits(BigIntegerData *const LowerDigits)
+{
+    this->LowerDigits = LowerDigits;
+}
+
+void BigInteger::Inner::setHigherDigits(BigIntegerData *const HigherDigits)
+{
+    this->HigherDigits = HigherDigits;
+}
+
+
+int BigInteger::Inner::stringToNum(const string &numberString)
+{
+    size_t numLength = numberString.length();
+    makeEmpty();
+    setLowerDigits(new BigIntegerData());
+
+    if (numberString[0] == '-')
     {
-        other.copy(*this);
+        setSign(true);
     }
-    Inner &operator=(const Inner &source)
+
+    BigIntegerData *current = getLowerDigits();
+
+    for (int i = numLength - 1, j = 0; i >= 0; --i, ++j)
     {
-        if (this != &source)
+        if (j % BASE_POW == 0 && j != 0)
         {
-            source.copy(*this);
+            current->createNext(current, nullptr, 0);
+            current = current->getNext();
         }
-        return *this;
-    }
-    ~Inner()
-    {
-        this->makeEmpty();
-    }
 
+        char intChar = numberString[i] - 48;
+        bool is_integer = (0 <= intChar) && (intChar <= 9);
 
-    bool getSign() const
-    {
-        return this->sign;
-    }
-
-    BigIntegerData *getLowerDigits() const
-    {
-        return this->LowerDigits;
-    }
-
-    BigIntegerData *getHigherDigits() const
-    {
-        return this->HigherDigits;
-    }
-
-
-    void setSign(const bool sign)
-    {
-        this->sign = sign;
-    }
-
-    void setLowerDigits(BigIntegerData *const LowerDigits)
-    {
-        this->LowerDigits = LowerDigits;
-    }
-
-    void setHigherDigits(BigIntegerData *const HigherDigits)
-    {
-        this->HigherDigits = HigherDigits;
-    }
-
-
-    int stringToNum(const string &numberString)
-    {
-        size_t numLength = numberString.length();
-        makeEmpty();
-        setLowerDigits(new BigIntegerData());
-
-        if (numberString[0] == '-')
+        if (!is_integer)
         {
-            setSign(true);
+            throw std::invalid_argument("Non integer char found in input string.");
         }
-
-        BigIntegerData *current = getLowerDigits();
-
-        for (int i = numLength - 1, j = 0; i >= 0; --i, ++j)
-        {
-            if (j % BASE_POW == 0 && j != 0)
-            {
-                current->createNext(current, nullptr, 0);
-                current = current->getNext();
-            }
-
-            char intChar = numberString[i] - 48;
-            bool is_integer = (0 <= intChar) && (intChar <= 9);
-
-            if (!is_integer)
-            {
-                throw std::invalid_argument("Non integer char found in input string.");
-            }
-            current->setDigits(current->getDigits() + intChar * this->pow(BASE, j % BASE_POW));
-        }
-        setHigherDigits(current);
-        return 0;
+        current->setDigits(current->getDigits() + intChar * this->pow(BASE, j % BASE_POW));
     }
+    setHigherDigits(current);
+    return 0;
+}
 
-    string toString() const
+string BigInteger::Inner::toString() const
+{
+    std::stringstream result;
+
+    if (!getHigherDigits())
     {
-        std::stringstream result;
-
-        if (!getHigherDigits())
-        {
-            result << 0;
-            return result.str();
-        }
-        if (getSign())
-        {
-            result << "-";
-        }
-
-        BigIntegerData *current = getHigherDigits();
-        while (current)
-        {
-            if (current == getHigherDigits())
-            {
-                result << current->getDigits();
-            }
-            else
-            {
-                result << std::setw(BASE) << std::setfill('0') << current->getDigits();
-            }
-            current = current->getPrevious();
-        }
+        result << 0;
         return result.str();
     }
-
-    int copy(Inner &dest) const
+    if (getSign())
     {
-        dest.makeEmpty();
-        dest.setSign(getSign());
+        result << "-";
+    }
 
-        BigIntegerData *currSRC = getLowerDigits();
-        if (!currSRC)
+    BigIntegerData *current = getHigherDigits();
+    while (current)
+    {
+        if (current == getHigherDigits())
         {
-            dest.setLowerDigits(nullptr);
-            dest.setHigherDigits(nullptr);
-            return 0;
+            result << current->getDigits();
         }
-
-        BigIntegerData *currDEST = new BigIntegerData(nullptr, nullptr, 0);
-        dest.setLowerDigits(currDEST);
-
-        while (currSRC)
+        else
         {
-            currDEST->setDigits(currSRC->getDigits());
-
-            if (currSRC->getNext())
-            {
-                currDEST->createNext(currDEST, nullptr, 0);
-                currDEST = currDEST->getNext();
-            }
-            else
-            {
-                currSRC = currSRC->getNext();
-            }
+            result << std::setw(BASE) << std::setfill('0') << current->getDigits();
         }
-        dest.setHigherDigits(currDEST);
+        current = current->getPrevious();
+    }
+    return result.str();
+}
+
+int BigInteger::Inner::copy(Inner &dest) const
+{
+    dest.makeEmpty();
+    dest.setSign(getSign());
+
+    BigIntegerData *currSRC = getLowerDigits();
+    if (!currSRC)
+    {
+        dest.setLowerDigits(nullptr);
+        dest.setHigherDigits(nullptr);
         return 0;
     }
 
-    int count() const
-    {
-        BigIntegerData *element = getLowerDigits();
-        int counter = 0;
+    BigIntegerData *currDEST = new BigIntegerData(nullptr, nullptr, 0);
+    dest.setLowerDigits(currDEST);
 
-        while (element)
+    while (currSRC)
+    {
+        currDEST->setDigits(currSRC->getDigits());
+
+        if (currSRC->getNext())
         {
-            ++counter;
-            element = element->getNext();
+            currDEST->createNext(currDEST, nullptr, 0);
+            currDEST = currDEST->getNext();
         }
-        return counter;
-    }
-
-    void makeEmpty()
-    {
-        BigIntegerData *current = getLowerDigits();
-        BigIntegerData *temp;
-
-        this->sign = 0;
-
-        while (current)
+        else
         {
-            temp = current->getNext();
-            delete current;
-            current = temp;
+            currSRC = currSRC->getNext();
         }
-        setLowerDigits(nullptr);
-        setHigherDigits(nullptr);
     }
+    dest.setHigherDigits(currDEST);
+    return 0;
+}
 
-    bool isEmpty() const
+int BigInteger::Inner::count() const
+{
+    BigIntegerData *element = getLowerDigits();
+    int counter = 0;
+
+    while (element)
     {
-        int result = count();
-        if (result == 0)
-        {
-            return true;
-        }
-        return false;
+        ++counter;
+        element = element->getNext();
     }
+    return counter;
+}
 
-    static long long pow(const int num, const int pow)
+void BigInteger::Inner::makeEmpty()
+{
+    BigIntegerData *current = getLowerDigits();
+    BigIntegerData *temp;
+
+    this->sign = 0;
+
+    while (current)
     {
-        long long result = 1;
-        for (int i = 0; i < pow; ++i)
-        {
-            result *= num;
-        }
-        return result;
+        temp = current->getNext();
+        delete current;
+        current = temp;
     }
+    setLowerDigits(nullptr);
+    setHigherDigits(nullptr);
+}
 
-    static int compare(const BigInteger &a, const BigInteger &b)
+bool BigInteger::Inner::isEmpty() const
+{
+    int result = count();
+    if (result == 0)
     {
-        int countA = a.count(), countB = b.count();
-        if (countA > countB)
+        return true;
+    }
+    return false;
+}
+
+long long BigInteger::Inner::pow(const int num, const int pow)
+{
+    long long result = 1;
+    for (int i = 0; i < pow; ++i)
+    {
+        result *= num;
+    }
+    return result;
+}
+
+int BigInteger::Inner::compare(const BigInteger &a, const BigInteger &b)
+{
+    int countA = a.count(), countB = b.count();
+    if (countA > countB)
+        return 1;
+    if (countA < countB)
+        return -1;
+
+    BigIntegerData *curA = a.impl->getHigherDigits();
+    BigIntegerData *curB = b.impl->getHigherDigits();
+
+    while (curA && curB)
+    {
+        if (curA->getDigits() > curB->getDigits())
             return 1;
-        if (countA < countB)
+        if (curB->getDigits() > curA->getDigits())
             return -1;
+        curA = curA->getPrevious();
+        curB = curB->getPrevious();
+    }
+    return 0;
+}
 
-        BigIntegerData *curA = a.impl->getHigherDigits();
-        BigIntegerData *curB = b.impl->getHigherDigits();
-
-        while (curA && curB)
+void BigInteger::Inner::appendNode(const long digits)
+{
+    if (isEmpty() || (count() == 1 && getLowerDigits()->getDigits() == 0))
+    {
+        if (!getLowerDigits())
         {
-            if (curA->getDigits() > curB->getDigits())
-                return 1;
-            if (curB->getDigits() > curA->getDigits())
-                return -1;
-            curA = curA->getPrevious();
-            curB = curB->getPrevious();
+            setLowerDigits(new BigIntegerData());
         }
-        return 0;
+        getLowerDigits()->setDigits(digits);
+        setHigherDigits(getLowerDigits());
+        return;
     }
 
-    void appendNode(const long digits)
+    BigIntegerData *newNode = new BigIntegerData(nullptr, getLowerDigits(), digits);
+    getLowerDigits()->setPrevious(newNode);
+    setLowerDigits(newNode);
+}
+
+void BigInteger::Inner::trimLeadingZeros()
+{
+    while (getHigherDigits() && getHigherDigits()->getDigits() == 0 && getHigherDigits() != getLowerDigits())
     {
-        if (isEmpty() || (count() == 1 && getLowerDigits()->getDigits() == 0))
+        BigIntegerData *tmp = getHigherDigits();
+        setHigherDigits(getHigherDigits()->getPrevious());
+
+        if (getHigherDigits())
+            getHigherDigits()->setNext(nullptr);
+        delete tmp;
+    }
+}
+
+BigInteger BigInteger::Inner::addAbsolute(const BigInteger &a, const BigInteger &b)
+{
+    BigInteger res = BigInteger();
+    BigIntegerData *curA = a.impl->getLowerDigits(),
+                    *curB = b.impl->getLowerDigits(),
+                    *lastNode = nullptr;
+    long long carry = 0;
+    long long limit = pow(BASE, BASE_POW);
+
+    while (curA || curB || carry)
+    {
+        long long sum = carry + (curA ? curA->getDigits() : 0) + (curB ? curB->getDigits() : 0);
+        carry = sum / limit;
+
+        BigIntegerData *dataNode = new BigIntegerData(sum % limit);
+
+        if (!res.impl->getLowerDigits())
         {
-            if (!getLowerDigits())
-            {
-                setLowerDigits(new BigIntegerData());
-            }
-            getLowerDigits()->setDigits(digits);
-            setHigherDigits(getLowerDigits());
-            return;
+            res.impl->setLowerDigits(dataNode);
+        }
+        if (lastNode)
+        {
+            lastNode->setNext(dataNode);
+            dataNode->setPrevious(lastNode);
+        }
+        lastNode = dataNode;
+
+        if (curA)
+        {
+            curA = curA->getNext();
+        }
+        if (curB)
+        {
+            curB = curB->getNext();
+        }
+    }
+    res.impl->setHigherDigits(lastNode);
+    return res;
+}
+
+BigInteger BigInteger::Inner::subAbsolute(const BigInteger &a, const BigInteger &b)
+{
+    BigInteger res = BigInteger();
+    BigIntegerData *curA = a.impl->getLowerDigits(),
+                    *curB = b.impl->getLowerDigits(),
+                    *lastNode = nullptr;
+    long long cary = 0;
+    long long limit = pow(BASE, BASE_POW);
+
+    while (curA)
+    {
+        long long valA = curA->getDigits();
+        long long valB = curB ? curB->getDigits() : 0;
+        long long difference = valA - valB - cary;
+
+        if (difference < 0)
+        {
+            difference += limit;
+            cary = 1;
+        }
+        else
+        {
+            cary = 0;
         }
 
-        BigIntegerData *newNode = new BigIntegerData(nullptr, getLowerDigits(), digits);
-        getLowerDigits()->setPrevious(newNode);
-        setLowerDigits(newNode);
+        BigIntegerData *dataNode = new BigIntegerData(difference);
+
+        if (!res.impl->getLowerDigits())
+        {
+            res.impl->setLowerDigits(dataNode);
+        }
+        if (lastNode)
+        {
+            lastNode->setNext(dataNode);
+            dataNode->setPrevious(lastNode);
+        }
+        lastNode = dataNode;
+
+        curA = curA->getNext();
+        if (curB)
+        {
+            curB = curB->getNext();
+        }
+    }
+    res.impl->setHigherDigits(lastNode);
+
+    while (res.impl->getHigherDigits() && res.impl->getHigherDigits()->getDigits() == 0 && res.impl->getHigherDigits() != res.impl->getLowerDigits())
+    {
+        res.impl->setHigherDigits(res.impl->getHigherDigits()->getPrevious());
+        delete res.impl->getHigherDigits()->getNext();
+        res.impl->getHigherDigits()->setNext(nullptr);
+    }
+    return res;
+}
+
+BigInteger BigInteger::Inner::multiply(const BigInteger &a, const BigInteger &b)
+{
+
+    int countA = a.count(),
+        countB = b.count();
+
+    if (countA == 0 || countB == 0)
+    {
+        return BigInteger();
     }
 
-    void trimLeadingZeros()
-    {
-        while (getHigherDigits() && getHigherDigits()->getDigits() == 0 && getHigherDigits() != getLowerDigits())
-        {
-            BigIntegerData *tmp = getHigherDigits();
-            setHigherDigits(getHigherDigits()->getPrevious());
+    std::vector<unsigned long long> aDigits;
+    aDigits.reserve(countA);
+    std::vector<unsigned long long> bDigits;
+    bDigits.reserve(countB);
 
-            if (getHigherDigits())
-                getHigherDigits()->setNext(nullptr);
-            delete tmp;
+    BigIntegerData *cur = a.impl->getLowerDigits();
+    for (int i = 0; i < countA; ++i)
+    {
+        aDigits[i] = (unsigned long long)cur->getDigits();
+        cur = cur->getNext();
+    }
+    cur = b.impl->getLowerDigits();
+    for (int i = 0; i < countB; ++i)
+    {
+        bDigits[i] = (unsigned long long)cur->getDigits();
+        cur = cur->getNext();
+    }
+
+    int resSize = countA + countB;
+    std::vector<unsigned long long> resDigits;
+    resDigits.reserve(resSize);
+
+    // multiplication
+    for (int i = 0; i < countA; ++i)
+    {
+        for (int j = 0; j < countB; ++j)
+        {
+            resDigits[i + j] += aDigits[i] * bDigits[j];
         }
     }
 
-    static BigInteger addAbsolute(const BigInteger &a, const BigInteger &b)
+    unsigned long long basePow = pow(BASE, BASE_POW);
+
+    // carries
+    for (int i = 0; i < resSize; ++i)
     {
-        BigInteger res = BigInteger();
-        BigIntegerData *curA = a.impl->getLowerDigits(),
-                       *curB = b.impl->getLowerDigits(),
-                       *lastNode = nullptr;
-        long long carry = 0;
-        long long limit = pow(BASE, BASE_POW);
-
-        while (curA || curB || carry)
+        unsigned long long carry = resDigits[i] / basePow;
+        resDigits[i] = resDigits[i] % basePow;
+        if (carry)
         {
-            long long sum = carry + (curA ? curA->getDigits() : 0) + (curB ? curB->getDigits() : 0);
-            carry = sum / limit;
-
-            BigIntegerData *dataNode = new BigIntegerData(sum % limit);
-
-            if (!res.impl->getLowerDigits())
+            if (i + 1 >= resSize)
             {
-                res.impl->setLowerDigits(dataNode);
-            }
-            if (lastNode)
-            {
-                lastNode->setNext(dataNode);
-                dataNode->setPrevious(lastNode);
-            }
-            lastNode = dataNode;
-
-            if (curA)
-            {
-                curA = curA->getNext();
-            }
-            if (curB)
-            {
-                curB = curB->getNext();
-            }
-        }
-        res.impl->setHigherDigits(lastNode);
-        return res;
-    }
-
-    static BigInteger subAbsolute(const BigInteger &a, const BigInteger &b)
-    {
-        BigInteger res = BigInteger();
-        BigIntegerData *curA = a.impl->getLowerDigits(),
-                       *curB = b.impl->getLowerDigits(),
-                       *lastNode = nullptr;
-        long long cary = 0;
-        long long limit = pow(BASE, BASE_POW);
-
-        while (curA)
-        {
-            long long valA = curA->getDigits();
-            long long valB = curB ? curB->getDigits() : 0;
-            long long difference = valA - valB - cary;
-
-            if (difference < 0)
-            {
-                difference += limit;
-                cary = 1;
+                resDigits.push_back(carry);
+                ++resSize;
             }
             else
             {
-                cary = 0;
+                resDigits[i + 1] += carry;
             }
+        }
+    }
 
-            BigIntegerData *dataNode = new BigIntegerData(difference);
+    int highestNonZero = resSize - 1;
+    while (highestNonZero > 0 && resDigits[highestNonZero] == 0)
+        --highestNonZero;
 
-            if (!res.impl->getLowerDigits())
-            {
-                res.impl->setLowerDigits(dataNode);
-            }
-            if (lastNode)
-            {
-                lastNode->setNext(dataNode);
-                dataNode->setPrevious(lastNode);
-            }
-            lastNode = dataNode;
+    BigInteger result = BigInteger();
 
+    // remove zeros
+    BigIntegerData *tmp = nullptr;
+    for (int i = 0; i <= highestNonZero; ++i)
+    {
+        cur = new BigIntegerData(tmp, nullptr, (long)resDigits[i]);
+        if (!result.impl->getLowerDigits())
+        {
+            result.impl->setLowerDigits(cur);
+        }
+        if (tmp)
+        {
+            tmp->setNext(cur);
+        }
+        tmp = cur;
+    }
+
+    result.impl->setHigherDigits(cur);
+    result.setSign(a.getSign() == b.getSign() ? false : true);
+    return result;
+}
+
+BigInteger BigInteger::Inner::multiply(const BigInteger &a, const long b)
+{
+    BigInteger res = BigInteger();
+    if (b == 0)
+    {
+        return res;
+    }
+    bool isNegative = b < 0;
+    res.setSign(res.getSign() == isNegative ? false : true);
+    long bCopy = isNegative ? -b : b;
+
+    BigIntegerData *curA = a.impl->getLowerDigits(),
+                    *prev = nullptr;
+
+    unsigned long long carry = 0;
+    long limit = pow(BASE, BASE_POW);
+
+    while (curA || carry)
+    {
+        unsigned long long val = carry + (unsigned long long)(curA ? curA->getDigits() : 0) * bCopy;
+        carry = val / limit;
+
+        BigIntegerData *node = new BigIntegerData((long)(val % limit));
+        if (!res.impl->getLowerDigits())
+            res.impl->setLowerDigits(node);
+        if (prev)
+        {
+            prev->setNext(node);
+            node->setPrevious(prev);
+        }
+        prev = node;
+        if (curA)
+        {
             curA = curA->getNext();
-            if (curB)
-            {
-                curB = curB->getNext();
-            }
         }
-        res.impl->setHigherDigits(lastNode);
-
-        while (res.impl->getHigherDigits() && res.impl->getHigherDigits()->getDigits() == 0 && res.impl->getHigherDigits() != res.impl->getLowerDigits())
-        {
-            res.impl->setHigherDigits(res.impl->getHigherDigits()->getPrevious());
-            delete res.impl->getHigherDigits()->getNext();
-            res.impl->getHigherDigits()->setNext(nullptr);
-        }
-        return res;
     }
+    res.impl->setHigherDigits(prev);
+    return res;
+}
 
-    static BigInteger multiply(const BigInteger &a, const BigInteger &b)
+BigInteger BigInteger::Inner::divide(const BigInteger &a, const BigInteger &b, const bool returnReminder)
+{
+    if (a < b)
     {
-
-        int countA = a.count(),
-            countB = b.count();
-
-        if (countA == 0 || countB == 0)
-        {
-            return BigInteger();
-        }
-
-        std::vector<unsigned long long> aDigits;
-        aDigits.reserve(countA);
-        std::vector<unsigned long long> bDigits;
-        bDigits.reserve(countB);
-
-        BigIntegerData *cur = a.impl->getLowerDigits();
-        for (int i = 0; i < countA; ++i)
-        {
-            aDigits[i] = (unsigned long long)cur->getDigits();
-            cur = cur->getNext();
-        }
-        cur = b.impl->getLowerDigits();
-        for (int i = 0; i < countB; ++i)
-        {
-            bDigits[i] = (unsigned long long)cur->getDigits();
-            cur = cur->getNext();
-        }
-
-        int resSize = countA + countB;
-        std::vector<unsigned long long> resDigits;
-        resDigits.reserve(resSize);
-
-        // multiplication
-        for (int i = 0; i < countA; ++i)
-        {
-            for (int j = 0; j < countB; ++j)
-            {
-                resDigits[i + j] += aDigits[i] * bDigits[j];
-            }
-        }
-
-        unsigned long long basePow = pow(BASE, BASE_POW);
-
-        // carries
-        for (int i = 0; i < resSize; ++i)
-        {
-            unsigned long long carry = resDigits[i] / basePow;
-            resDigits[i] = resDigits[i] % basePow;
-            if (carry)
-            {
-                if (i + 1 >= resSize)
-                {
-                    resDigits.push_back(carry);
-                    ++resSize;
-                }
-                else
-                {
-                    resDigits[i + 1] += carry;
-                }
-            }
-        }
-
-        int highestNonZero = resSize - 1;
-        while (highestNonZero > 0 && resDigits[highestNonZero] == 0)
-            --highestNonZero;
-
-        BigInteger result = BigInteger();
-
-        // remove zeros
-        BigIntegerData *tmp = nullptr;
-        for (int i = 0; i <= highestNonZero; ++i)
-        {
-            cur = new BigIntegerData(tmp, nullptr, (long)resDigits[i]);
-            if (!result.impl->getLowerDigits())
-            {
-                result.impl->setLowerDigits(cur);
-            }
-            if (tmp)
-            {
-                tmp->setNext(cur);
-            }
-            tmp = cur;
-        }
-
-        result.impl->setHigherDigits(cur);
-        result.setSign(a.getSign() == b.getSign() ? false : true);
-        return result;
-    }
-
-    static BigInteger multiply(const BigInteger &a, const long b)
-    {
-        BigInteger res = BigInteger();
-        if (b == 0)
-        {
-            return res;
-        }
-        bool isNegative = b < 0;
-        res.setSign(res.getSign() == isNegative ? false : true);
-        long bCopy = isNegative ? -b : b;
-
-        BigIntegerData *curA = a.impl->getLowerDigits(),
-                       *prev = nullptr;
-
-        unsigned long long carry = 0;
-        long limit = pow(BASE, BASE_POW);
-
-        while (curA || carry)
-        {
-            unsigned long long val = carry + (unsigned long long)(curA ? curA->getDigits() : 0) * bCopy;
-            carry = val / limit;
-
-            BigIntegerData *node = new BigIntegerData((long)(val % limit));
-            if (!res.impl->getLowerDigits())
-                res.impl->setLowerDigits(node);
-            if (prev)
-            {
-                prev->setNext(node);
-                node->setPrevious(prev);
-            }
-            prev = node;
-            if (curA)
-            {
-                curA = curA->getNext();
-            }
-        }
-        res.impl->setHigherDigits(prev);
-        return res;
-    }
-
-    static BigInteger divide(const BigInteger &a, const BigInteger &b, const bool returnReminder)
-    {
-        if (a < b)
-        {
-            if (returnReminder)
-            {
-                return BigInteger(a);
-            }
-            return BigInteger();
-        }
-        if (a.isEmpty() || a.impl->getHigherDigits()->getDigits() == 0)
-        {
-            return BigInteger();
-        }
-        if (b.count() == 1 && b.impl->getHigherDigits()->getDigits() == 1)
-        {
-            if (returnReminder)
-            {
-                return BigInteger();
-            }
-            return BigInteger(a);
-        }
-
-        BigInteger quotient = BigInteger();
-        BigInteger remainder = BigInteger();
-        BigIntegerData *curA = a.impl->getHigherDigits();
-
-        while (curA)
-        {
-            remainder.impl->appendNode(curA->getDigits());
-            remainder.impl->trimLeadingZeros();
-
-            long low = 0,
-                 high = pow(BASE, BASE_POW) - 1,
-                 q = 0;
-
-            while (low <= high)
-            {
-                long mid = low + (high - low) / 2;
-                BigInteger test = a.impl->multiply(b, mid);
-
-                if (test <= remainder)
-                {
-                    q = mid;
-                    low = mid + 1;
-                }
-                else
-                {
-                    high = mid - 1;
-                }
-            }
-
-            // Update reminder
-            BigInteger qb = a.impl->multiply(b, q);
-            BigInteger nextRem = subAbsolute(remainder, qb);
-            remainder = nextRem;
-
-            quotient.impl->appendNode(q);
-            curA = curA->getPrevious();
-        }
-
         if (returnReminder)
         {
-            remainder.impl->trimLeadingZeros();
-            remainder.setSign((remainder.count() == 1 && remainder.impl->getHigherDigits()->getDigits() == 0) || remainder.isEmpty() ? false : a.getSign());
-            return remainder;
+            return BigInteger(a);
+        }
+        return BigInteger();
+    }
+    if (a.isEmpty() || a.impl->getHigherDigits()->getDigits() == 0)
+    {
+        return BigInteger();
+    }
+    if (b.count() == 1 && b.impl->getHigherDigits()->getDigits() == 1)
+    {
+        if (returnReminder)
+        {
+            return BigInteger();
+        }
+        return BigInteger(a);
+    }
+
+    BigInteger quotient = BigInteger();
+    BigInteger remainder = BigInteger();
+    BigIntegerData *curA = a.impl->getHigherDigits();
+
+    while (curA)
+    {
+        remainder.impl->appendNode(curA->getDigits());
+        remainder.impl->trimLeadingZeros();
+
+        long low = 0,
+                high = pow(BASE, BASE_POW) - 1,
+                q = 0;
+
+        while (low <= high)
+        {
+            long mid = low + (high - low) / 2;
+            BigInteger test = a.impl->multiply(b, mid);
+
+            if (test <= remainder)
+            {
+                q = mid;
+                low = mid + 1;
+            }
+            else
+            {
+                high = mid - 1;
+            }
         }
 
-        quotient.impl->trimLeadingZeros();
-        quotient.setSign((quotient.count() == 1 && quotient.impl->getHigherDigits()->getDigits() == 0) || quotient.isEmpty() ? false : a.getSign() != b.getSign());
-        return quotient;
+        // Update reminder
+        BigInteger qb = a.impl->multiply(b, q);
+        BigInteger nextRem = subAbsolute(remainder, qb);
+        remainder = nextRem;
+
+        quotient.impl->appendNode(q);
+        curA = curA->getPrevious();
     }
-};
+
+    if (returnReminder)
+    {
+        remainder.impl->trimLeadingZeros();
+        remainder.setSign((remainder.count() == 1 && remainder.impl->getHigherDigits()->getDigits() == 0) || remainder.isEmpty() ? false : a.getSign());
+        return remainder;
+    }
+
+    quotient.impl->trimLeadingZeros();
+    quotient.setSign((quotient.count() == 1 && quotient.impl->getHigherDigits()->getDigits() == 0) || quotient.isEmpty() ? false : a.getSign() != b.getSign());
+    return quotient;
+}
+
+// Public methods redirect
 
 BigInteger::BigInteger(const string &number = "")
 {
@@ -688,6 +752,7 @@ bool BigInteger::isEmpty() const
     return impl->isEmpty();
 }
 
+// Operators implementation
 
 void operator+=(BigInteger &dest, const BigInteger &src)
 {
@@ -785,7 +850,7 @@ bool operator==(const BigInteger &a, const BigInteger &b)
     {
         return !(bool)BigInteger::Inner::compare(a, b);
     }
-    return 1;
+    return true;
 }
 
 bool operator!=(const BigInteger &a, const BigInteger &b)
@@ -794,7 +859,7 @@ bool operator!=(const BigInteger &a, const BigInteger &b)
     {
         return (bool)BigInteger::Inner::compare(a, b);
     }
-    return 0;
+    return false;
 }
 
 bool operator<(const BigInteger &a, const BigInteger &b)
@@ -803,7 +868,7 @@ bool operator<(const BigInteger &a, const BigInteger &b)
     {
         return BigInteger::Inner::compare(a, b) == -1;
     }
-    return 0;
+    return false;
 }
 
 bool operator<=(const BigInteger &a, const BigInteger &b)
@@ -812,7 +877,7 @@ bool operator<=(const BigInteger &a, const BigInteger &b)
     {
         return BigInteger::Inner::compare(a, b) <= 0;
     }
-    return 1;
+    return true;
 }
 
 bool operator>=(const BigInteger &a, const BigInteger &b)
@@ -821,7 +886,7 @@ bool operator>=(const BigInteger &a, const BigInteger &b)
     {
         return BigInteger::Inner::compare(a, b) >= 0;
     }
-    return 1;
+    return true;
 }
 
 bool operator>(const BigInteger &a, const BigInteger &b)
@@ -830,7 +895,7 @@ bool operator>(const BigInteger &a, const BigInteger &b)
     {
         return BigInteger::Inner::compare(a, b) == 1;
     }
-    return 0;
+    return false;
 }
 
 std::ostream &operator<<(std::ostream &out, const BigInteger &a)
