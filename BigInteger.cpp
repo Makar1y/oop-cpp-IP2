@@ -11,6 +11,10 @@ namespace BigInt
 {
     using std::string;
 
+    ZeroDivisionException::ZeroDivisionException(const BigInteger &a, const BigInteger &b) : std::runtime_error("Zero division error: tried to divide " + a.toString() + " by " + b.toString() + "\n")
+    {
+    }
+
     class BigIntegerData
     {
     private:
@@ -115,7 +119,7 @@ namespace BigInt
         static BigInteger multiply(const BigInteger &a, const long b);
         static BigInteger divide(const BigInteger &a, const BigInteger &b, const bool returnReminder);
 
-        friend void operator+=(BigInteger &dest, const BigInteger &src);
+        friend BigInteger& operator+=(BigInteger &dest, const BigInteger &src);
         friend BigInteger &operator-=(BigInteger &dest, const BigInteger &src);
         friend BigInteger &operator*=(BigInteger &dest, const BigInteger &src);
         friend BigInteger &operator/=(BigInteger &dest, const BigInteger &src);
@@ -218,7 +222,7 @@ namespace BigInt
 
             if (!is_integer)
             {
-                throw std::invalid_argument("Non integer char found in input string.");
+                throw std::invalid_argument(string("Non integer char found in input string \"") + numberString + string("\"."));
             }
             current->setDigits(current->getDigits() + intChar * this->pow(BASE, j % BASE_POW));
         }
@@ -498,9 +502,9 @@ namespace BigInt
         }
 
         std::vector<unsigned long long> aDigits;
-        aDigits.reserve(countA);
+        aDigits.resize(countA);
         std::vector<unsigned long long> bDigits;
-        bDigits.reserve(countB);
+        bDigits.resize(countB);
 
         BigIntegerData *cur = a.impl->getLowerDigits();
         for (int i = 0; i < countA; ++i)
@@ -517,7 +521,7 @@ namespace BigInt
 
         int resSize = countA + countB;
         std::vector<unsigned long long> resDigits;
-        resDigits.reserve(resSize);
+        resDigits.resize(resSize);
 
         // multiplication
         for (int i = 0; i < countA; ++i)
@@ -749,9 +753,10 @@ namespace BigInt
 
     // Operators implementation
 
-    void operator+=(BigInteger &dest, const BigInteger &src)
+    BigInteger &operator+=(BigInteger &dest, const BigInteger &src)
     {
         dest = dest + src;
+        return dest;
     }
 
     BigInteger &operator-=(BigInteger &dest, const BigInteger &src)
@@ -829,7 +834,7 @@ namespace BigInt
     {
         if (b.isEmpty() || b.impl->getHigherDigits()->getDigits() == 0)
         {
-            throw std::runtime_error("Zero division error.\n");
+            throw ZeroDivisionException(a, b);
         }
         return BigInteger::Inner::divide(a, b, false);
     }
@@ -838,7 +843,7 @@ namespace BigInt
     {
         if (b.isEmpty() || b.impl->getHigherDigits()->getDigits() == 0)
         {
-            throw std::runtime_error("Zero division error.\n");
+            throw ZeroDivisionException(a, b);
         }
         return BigInteger::Inner::divide(a, b, true);
     }
@@ -914,5 +919,4 @@ namespace BigInt
         }
         return in;
     }
-
 }
