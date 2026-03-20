@@ -3,11 +3,11 @@
 
 #include <stdexcept>
 #define string std::string
+#define BINT_BASE 10
+#define BINT_POW 9
 
 namespace BigInt
 {
-#define BASE 10
-#define BASE_POW 9
 
     class BigInteger
     {
@@ -27,12 +27,13 @@ namespace BigInt
 
         void setSign(const bool sign);
 
-        int stringToNum(const string &numberString);
+        void stringToNum(const string &numberString);
         string toString() const;
-        int copy(BigInteger &dest) const;
+        void copy(BigInteger &dest) const;
         int count() const;
         void makeEmpty();
         bool isEmpty() const;
+        bool isZero() const;
 
         friend BigInteger &operator+=(BigInteger &dest, const BigInteger &src);
         friend BigInteger &operator-=(BigInteger &dest, const BigInteger &src);

@@ -70,12 +70,13 @@ namespace BigInt
         void setHigherDigits(BigIntegerData *const HigherDigits);
 
     public:
-        int stringToNum(const string &numberString);
+        void stringToNum(const string &numberString);
         string toString() const;
-        int copy(Inner &dest) const;
+        void copy(Inner &dest) const;
         int count() const;
         void makeEmpty();
         bool isEmpty() const;
+        bool isZero() const;
 
     private:
         static long long pow(const int num, const int pow);
@@ -89,7 +90,7 @@ namespace BigInt
         static BigInteger multiply(const BigInteger &a, const long b);
         static BigInteger divide(const BigInteger &a, const BigInteger &b, const bool returnReminder);
 
-        friend BigInteger& operator+=(BigInteger &dest, const BigInteger &src);
+        friend BigInteger &operator+=(BigInteger &dest, const BigInteger &src);
         friend BigInteger &operator-=(BigInteger &dest, const BigInteger &src);
         friend BigInteger &operator*=(BigInteger &dest, const BigInteger &src);
         friend BigInteger &operator/=(BigInteger &dest, const BigInteger &src);
@@ -219,10 +220,15 @@ namespace BigInt
         this->HigherDigits = HigherDigits;
     }
 
-    int BigInteger::Inner::stringToNum(const string &numberString)
+    void BigInteger::Inner::stringToNum(const string &numberString)
     {
         size_t numLength = numberString.length();
         makeEmpty();
+        if (numLength == 0)
+        {
+            return;
+        }
+
         setLowerDigits(new BigIntegerData());
 
         if (numberString[0] == '-')
@@ -234,7 +240,11 @@ namespace BigInt
 
         for (int i = numLength - 1, j = 0; i >= 0; --i, ++j)
         {
-            if (j % BASE_POW == 0 && j != 0)
+            if (numberString[i] == '-')
+            {
+                continue;
+            }
+            if (j % BINT_POW == 0 && j != 0)
             {
                 current->createNext(current, nullptr, 0);
                 current = current->getNext();
@@ -245,12 +255,12 @@ namespace BigInt
 
             if (!is_integer)
             {
-                throw std::invalid_argument(string("Non integer char found in input string \"") + numberString + string("\"."));
+                throw std::invalid_argument("Non integer char found in input string \"" + numberString + "\".");
             }
-            current->setDigits(current->getDigits() + intChar * this->pow(BASE, j % BASE_POW));
+            current->setDigits(current->getDigits() + intChar * this->pow(BINT_BASE, j % BINT_POW));
         }
         setHigherDigits(current);
-        return 0;
+        return;
     }
 
     string BigInteger::Inner::toString() const
@@ -276,14 +286,14 @@ namespace BigInt
             }
             else
             {
-                result << std::setw(BASE) << std::setfill('0') << current->getDigits();
+                result << std::setw(BINT_POW) << std::setfill('0') << current->getDigits();
             }
             current = current->getPrevious();
         }
         return result.str();
     }
 
-    int BigInteger::Inner::copy(Inner &dest) const
+    void BigInteger::Inner::copy(Inner &dest) const
     {
         dest.makeEmpty();
         dest.setSign(getSign());
@@ -293,7 +303,7 @@ namespace BigInt
         {
             dest.setLowerDigits(nullptr);
             dest.setHigherDigits(nullptr);
-            return 0;
+            return;
         }
 
         BigIntegerData *currDEST = new BigIntegerData(nullptr, nullptr, 0);
@@ -311,7 +321,7 @@ namespace BigInt
             currSRC = currSRC->getNext();
         }
         dest.setHigherDigits(currDEST);
-        return 0;
+        return;
     }
 
     int BigInteger::Inner::count() const
@@ -346,12 +356,12 @@ namespace BigInt
 
     bool BigInteger::Inner::isEmpty() const
     {
-        int result = count();
-        if (result == 0)
-        {
-            return true;
-        }
-        return false;
+        return count() == 0;
+    }
+ 
+    bool BigInteger::Inner::isZero() const
+    {
+        return isEmpty() || (count() == 1 && getLowerDigits()->getDigits() == 0);
     }
 
     long long BigInteger::Inner::pow(const int num, const int pow)
@@ -366,6 +376,12 @@ namespace BigInt
 
     int BigInteger::Inner::compare(const BigInteger &a, const BigInteger &b)
     {
+        if (a.isZero() && b.isZero())
+            return 0;
+ 
+        if (a.getSign() != b.getSign())
+            return a.getSign() ? -1 : 1;
+
         int countA = a.count(), countB = b.count();
         if (countA > countB)
             return 1;
@@ -389,7 +405,7 @@ namespace BigInt
 
     void BigInteger::Inner::appendNode(const long digits)
     {
-        if (isEmpty() || (count() == 1 && getLowerDigits()->getDigits() == 0))
+        if (isZero())
         {
             if (!getLowerDigits())
             {
@@ -425,7 +441,7 @@ namespace BigInt
                        *curB = b.impl->getLowerDigits(),
                        *lastNode = nullptr;
         long long carry = 0;
-        long long limit = pow(BASE, BASE_POW);
+        long long limit = pow(BINT_BASE, BINT_POW);
 
         while (curA || curB || carry)
         {
@@ -465,7 +481,7 @@ namespace BigInt
                        *curB = b.impl->getLowerDigits(),
                        *lastNode = nullptr;
         long long cary = 0;
-        long long limit = pow(BASE, BASE_POW);
+        long long limit = pow(BINT_BASE, BINT_POW);
 
         while (curA)
         {
@@ -555,7 +571,7 @@ namespace BigInt
             }
         }
 
-        unsigned long long basePow = pow(BASE, BASE_POW);
+        unsigned long long basePow = pow(BINT_BASE, BINT_POW);
 
         // carries
         for (int i = 0; i < resSize; ++i)
@@ -618,7 +634,7 @@ namespace BigInt
                        *prev = nullptr;
 
         unsigned long long carry = 0;
-        long limit = pow(BASE, BASE_POW);
+        long limit = pow(BINT_BASE, BINT_POW);
 
         while (curA || carry)
         {
@@ -653,7 +669,7 @@ namespace BigInt
             }
             return BigInteger();
         }
-        if (a.isEmpty() || a.impl->getHigherDigits()->getDigits() == 0)
+        if (a.isZero())
         {
             return BigInteger();
         }
@@ -676,7 +692,7 @@ namespace BigInt
             remainder.impl->trimLeadingZeros();
 
             long low = 0,
-                 high = pow(BASE, BASE_POW) - 1,
+                 high = pow(BINT_BASE, BINT_POW) - 1,
                  q = 0;
 
             while (low <= high)
@@ -707,12 +723,12 @@ namespace BigInt
         if (returnReminder)
         {
             remainder.impl->trimLeadingZeros();
-            remainder.setSign((remainder.count() == 1 && remainder.impl->getHigherDigits()->getDigits() == 0) || remainder.isEmpty() ? false : a.getSign());
+            remainder.setSign(remainder.isZero() ? false : a.getSign());
             return remainder;
         }
 
         quotient.impl->trimLeadingZeros();
-        quotient.setSign((quotient.count() == 1 && quotient.impl->getHigherDigits()->getDigits() == 0) || quotient.isEmpty() ? false : a.getSign() != b.getSign());
+        quotient.setSign(quotient.isZero() ? false : a.getSign() != b.getSign());
         return quotient;
     }
 
@@ -749,7 +765,7 @@ namespace BigInt
         impl->setSign(sign);
     }
 
-    int BigInteger::stringToNum(const string &numberString)
+    void BigInteger::stringToNum(const string &numberString)
     {
         return impl->stringToNum(numberString);
     }
@@ -757,7 +773,7 @@ namespace BigInt
     {
         return impl->toString();
     }
-    int BigInteger::copy(BigInteger &dest) const
+    void BigInteger::copy(BigInteger &dest) const
     {
         return impl->copy(*(dest.impl));
     }
@@ -772,6 +788,10 @@ namespace BigInt
     bool BigInteger::isEmpty() const
     {
         return impl->isEmpty();
+    }
+    bool BigInteger::isZero() const
+    {
+        return impl->isZero();
     }
 
     // BigInteger Operators implementation
@@ -821,8 +841,7 @@ namespace BigInt
             {
                 res = BigInteger();
             }
-
-            if (cmp > 0)
+            else if (cmp > 0)
             {
                 res = BigInteger::Inner::subAbsolute(a, b);
                 res.setSign(a.getSign());
@@ -836,7 +855,8 @@ namespace BigInt
         return res;
     }
 
-    BigInteger& operator++(BigInteger &a) {
+    BigInteger &operator++(BigInteger &a)
+    {
         a += BigInteger("1");
         return a;
     }
@@ -853,7 +873,8 @@ namespace BigInt
         return res;
     }
 
-    BigInteger& operator--(BigInteger &a) {
+    BigInteger &operator--(BigInteger &a)
+    {
         a -= BigInteger("1");
         return a;
     }
@@ -865,7 +886,7 @@ namespace BigInt
 
     BigInteger operator/(const BigInteger &a, const BigInteger &b)
     {
-        if (b.isEmpty() || b.impl->getHigherDigits()->getDigits() == 0)
+        if (b.isZero())
         {
             throw ZeroDivisionException(a, b);
         }
@@ -874,7 +895,7 @@ namespace BigInt
 
     BigInteger operator%(const BigInteger &a, const BigInteger &b)
     {
-        if (b.isEmpty() || b.impl->getHigherDigits()->getDigits() == 0)
+        if (b.isZero())
         {
             throw ZeroDivisionException(a, b);
         }
@@ -883,56 +904,48 @@ namespace BigInt
 
     bool operator==(const BigInteger &a, const BigInteger &b)
     {
-        if (&a != &b)
-        {
-            return !(bool)BigInteger::Inner::compare(a, b);
-        }
-        return true;
+        if (&a == &b)
+            return true;
+        return BigInteger::Inner::compare(a, b) == 0;
     }
 
     bool operator!=(const BigInteger &a, const BigInteger &b)
     {
-        if (&a != &b)
-        {
-            return (bool)BigInteger::Inner::compare(a, b);
-        }
-        return false;
+        return !(a == b);
     }
 
     bool operator<(const BigInteger &a, const BigInteger &b)
     {
-        if (&a != &b)
+        if (&a == &b)
+            return false;
+        bool signA = a.getSign(), signB = b.getSign();
+
+        if (signA && !signB)
+            return true;
+        if (!signA && signB)
+            return false;
+
+        int cmp = BigInteger::Inner::compare(a, b);
+        if (signA)
         {
-            return BigInteger::Inner::compare(a, b) == -1;
+            return cmp == 1;
         }
-        return false;
+        return cmp == -1;
     }
 
     bool operator<=(const BigInteger &a, const BigInteger &b)
     {
-        if (&a != &b)
-        {
-            return BigInteger::Inner::compare(a, b) <= 0;
-        }
-        return true;
+        return (a < b) || (a == b);
     }
 
     bool operator>=(const BigInteger &a, const BigInteger &b)
     {
-        if (&a != &b)
-        {
-            return BigInteger::Inner::compare(a, b) >= 0;
-        }
-        return true;
+        return !(a < b);
     }
 
     bool operator>(const BigInteger &a, const BigInteger &b)
     {
-        if (&a != &b)
-        {
-            return BigInteger::Inner::compare(a, b) == 1;
-        }
-        return false;
+        return !(a <= b);
     }
 
     std::ostream &operator<<(std::ostream &out, const BigInteger &a)
