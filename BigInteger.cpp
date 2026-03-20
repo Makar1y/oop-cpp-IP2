@@ -168,11 +168,11 @@ namespace BigInt
 
     // BigInteger Implementation
 
-    BigInteger::Inner::Inner(const string &number)
+    BigInteger::Inner::Inner(const string &number) : sign(false), LowerDigits(nullptr), HigherDigits(nullptr)
     {
         stringToNum(number);
     }
-    BigInteger::Inner::Inner(const Inner &other)
+    BigInteger::Inner::Inner(const Inner &other) : sign(false), LowerDigits(nullptr), HigherDigits(nullptr)
     {
         other.copy(*this);
     }
