@@ -60,7 +60,7 @@ void testIncrements() {
 }
 
 void testBigNumbersAddition() {
-    std::cout << "Testing Big Number Addition..." << std::endl;
+    std::cout << "Testing Addition..." << std::endl;
     BigInteger a("1234567890123456789012345678901234567890");
     BigInteger b("9876543210987654321098765432109876543210");
     // Expected: 11111111101111111110111111111011111111100
@@ -72,7 +72,7 @@ void testBigNumbersAddition() {
 }
 
 void testBigNumbersSubtraction() {
-    std::cout << "Testing Big Number Subtraction..." << std::endl;
+    std::cout << "Testing  Subtraction..." << std::endl;
     BigInteger a("1000000000000000000000000000000000000");
     BigInteger b("1");
     check(a - b, "999999999999999999999999999999999999", "Borrow across multiple nodes");
@@ -83,7 +83,7 @@ void testBigNumbersSubtraction() {
 }
 
 void testBigNumbersMultiplication() {
-    std::cout << "Testing Big Number Multiplication..." << std::endl;
+    std::cout << "Testing Multiplication..." << std::endl;
     // (10^20) * (10^20) = 10^40
     BigInteger a("100000000000000000000"); // 10^20
     check(a * a, "10000000000000000000000000000000000000000", "Multiplication power of 10");
@@ -91,30 +91,30 @@ void testBigNumbersMultiplication() {
     BigInteger b("1234567890123456789");
     BigInteger c("9876543210987654321");
     // Result: 12193263113702179522374638011112635269
-    check(b * c, "12193263113702179522374638011112635269", "Big number multiplication");
+    check(b * c, "12193263113702179522374638011112635269", "Multiplication");
 }
 
 void testBigNumbersDivision() {
-    std::cout << "Testing Big Number Division..." << std::endl;
+    std::cout << "Testing Division..." << std::endl;
     BigInteger a("12193263113702179522374638011112635269");
     BigInteger b("1234567890123456789");
-    check(a / b, "9876543210987654321", "Big number division");
+    check(a / b, "9876543210987654321", "Division");
 
     BigInteger c("1000000000000000000000000000000000000");
     BigInteger d("3");
     // 333333333333333333333333333333333333
-    check(c / d, "333333333333333333333333333333333333", "Big number division by small constant");
+    check(c / d, "333333333333333333333333333333333333", " Division by small constant");
 }
 
 void testBigNumbersModulo() {
-    std::cout << "Testing Big Number Modulo..." << std::endl;
+    std::cout << "Testing Modulo..." << std::endl;
     BigInteger a("1000000000000000000000000000000000001");
     BigInteger b("1000000000000000000");
-    check(a % b, "1", "Big number modulo");
+    check(a % b, "1", "Modulo");
 }
 
 void testMixedSigns() {
-    std::cout << "Testing Big Number Mixed Signs..." << std::endl;
+    std::cout << "Testing Mixed Signs..." << std::endl;
     BigInteger a("-1234567890123456789012345678901234567890");
     BigInteger b("1234567890123456789012345678901234567891");
     check(a + b, "1", "Negative + Positive");
@@ -123,7 +123,7 @@ void testMixedSigns() {
 }
 
 int main() {
-    std::cout << "Running Big Number Unit Tests..." << std::endl;
+    std::cout << "Running Unit Tests..." << std::endl;
 
     testConstructors();
     testRelationalOperators();
@@ -135,6 +135,6 @@ int main() {
     testIncrements();
     testMixedSigns();
 
-    std::cout << "\nAll Big Number tests passed!" << std::endl;
+    std::cout << "\nAll tests passed!" << std::endl;
     return 0;
 }
