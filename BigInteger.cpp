@@ -836,6 +836,11 @@ namespace BigInt
         return res;
     }
 
+    BigInteger& operator++(BigInteger &a) {
+        a += BigInteger("1");
+        return a;
+    }
+
     BigInteger operator-(const BigInteger &a, const BigInteger &b)
     {
         return a + (-b);
@@ -846,6 +851,11 @@ namespace BigInt
         BigInteger res = BigInteger(a);
         res.setSign(!a.getSign());
         return res;
+    }
+
+    BigInteger& operator--(BigInteger &a) {
+        a -= BigInteger("1");
+        return a;
     }
 
     BigInteger operator*(const BigInteger &a, const BigInteger &b)

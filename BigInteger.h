@@ -6,8 +6,8 @@
 
 namespace BigInt
 {
-    #define BASE 10
-    #define BASE_POW 9
+#define BASE 10
+#define BASE_POW 9
 
     class BigInteger
     {
@@ -41,8 +41,10 @@ namespace BigInt
         friend BigInteger &operator%=(BigInteger &dest, const BigInteger &src);
 
         friend BigInteger operator+(const BigInteger &a, const BigInteger &b);
+        friend BigInteger &operator++(BigInteger &a);
         friend BigInteger operator-(const BigInteger &a, const BigInteger &b);
         friend BigInteger operator-(const BigInteger &a);
+        friend BigInteger &operator--(BigInteger &a);
         friend BigInteger operator*(const BigInteger &a, const BigInteger &b);
         friend BigInteger operator/(const BigInteger &a, const BigInteger &b);
         friend BigInteger operator%(const BigInteger &a, const BigInteger &b);
