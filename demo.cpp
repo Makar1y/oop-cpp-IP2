@@ -6,6 +6,8 @@
 
 using namespace BigInt;
 
+#define CollatzConjecture_NUM_SIZE 50
+
 void CollatzConjecture();
 
 int main() {
@@ -27,7 +29,11 @@ int main() {
     std::cout << "Assigned b to c: " << c << std::endl;
     std::cout << "Assigned c to a: " << a << std::endl;
 
-    // 4. getSign() and setSign()
+    // 4. Assignment from string
+    c = "555";
+    std::cout << "Assigned string \"555\" to c: " << c << std::endl;
+
+    // 5. getSign() and setSign()
     std::cout << "c sign: " << (c.getSign() ? "negative" : "positive") << std::endl;
     c.setSign(true);
     std::cout << "c after setSign(true): " << c << " (sign: " << c.getSign() << ")" << std::endl;
@@ -118,8 +124,7 @@ void CollatzConjecture()
         srand(time(0));
 
         std::stringstream tmp;
-        int rep = ((rand() % 11) + 5);
-        for (int i = 0; i < rep; ++i)
+        while (tmp.str().length() < CollatzConjecture_NUM_SIZE)
         {
             tmp << rand();
         }
@@ -132,7 +137,7 @@ void CollatzConjecture()
         BigInteger three{"3"};
         demoFile.open("Collatz_Conjecture.txt");
 
-        demoFile << "Collatz Conjecture problem solving for number " << numString << "\n";
+        demoFile << "Collatz Conjecture problem solving for number " << numString << ": \n\n";
 
         while (number != one)
         {

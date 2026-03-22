@@ -57,6 +57,7 @@ namespace BigInt
         Inner(const string &number = "");
         Inner(const Inner &other);
         Inner &operator=(const Inner &source);
+        Inner &operator=(const string &source);
         ~Inner();
 
         bool getSign() const;
@@ -183,6 +184,11 @@ namespace BigInt
         {
             source.copy(*this);
         }
+        return *this;
+    }
+    BigInteger::Inner &BigInteger::Inner::operator=(const string &source)
+    {
+        this->stringToNum(source);
         return *this;
     }
     BigInteger::Inner::~Inner()
@@ -358,7 +364,7 @@ namespace BigInt
     {
         return count() == 0;
     }
- 
+
     bool BigInteger::Inner::isZero() const
     {
         return isEmpty() || (count() == 1 && getLowerDigits()->getDigits() == 0);
@@ -378,7 +384,7 @@ namespace BigInt
     {
         if (a.isZero() && b.isZero())
             return 0;
- 
+
         if (a.getSign() != b.getSign())
             return a.getSign() ? -1 : 1;
 
@@ -742,12 +748,17 @@ namespace BigInt
     {
         impl = new BigInteger::Inner(*(other.impl));
     }
-    const BigInteger &BigInteger::operator=(const BigInteger &source)
+    BigInteger &BigInteger::operator=(const BigInteger &source)
     {
         if (this != &source)
         {
             *(this->impl) = *(source.impl);
         }
+        return *this;
+    }
+    BigInteger &BigInteger::operator=(const string &source)
+    {
+        *(this->impl) = source;
         return *this;
     }
     BigInteger::~BigInteger()

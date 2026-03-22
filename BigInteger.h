@@ -11,7 +11,12 @@
 namespace BigInt
 {
 
-    /// @brief 
+    /**
+     * @class BigInteger
+     * @brief A class for large integer arithmetic.
+     * 
+     * Handles large positive and negative integers using a linked list of digit blocks.
+     */
     class BigInteger
     {
     private:
@@ -19,25 +24,42 @@ namespace BigInt
         Inner *impl;
 
     public:
-        /// @brief 
-        /// @param number 
+        /**
+         * @brief Construct a new BigInteger object from a string.
+         * @param number The initial value as a string (default is empty/0).
+         */
         BigInteger(const string &number = "");
 
-        /// @brief 
-        /// @param other 
+        /**
+         * @brief Copy constructor.
+         * @param other The BigInteger object to copy from.
+         */
         BigInteger(const BigInteger &other);
 
-        /// @brief 
-        /// @param source 
-        /// @return 
-        const BigInteger &operator=(const BigInteger &source);
+        /**
+         * @brief Assignment operator for BigInteger objects.
+         * @param source The BigInteger object to copy from.
+         * @return BigInteger& Reference to this object.
+         */
+        BigInteger &operator=(const BigInteger &source);
 
-        /// @brief 
+        /**
+         * @brief Assignment operator for string sources.
+         * @param source The string representation of the number to assign.
+         * @return BigInteger& Reference to this object.
+         */
+        BigInteger &operator=(const string &source);
+
+        /**
+         * @brief Destructor.
+         */
         ~BigInteger();
 
 
-        /// @brief 
-        /// @return 
+        /**
+         * @brief Get the sign of the BigInteger.
+         * @return true if negative, false if positive or zero.
+         */
         bool getSign() const;
 
         /**

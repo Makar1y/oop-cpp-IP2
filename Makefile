@@ -23,6 +23,6 @@ run_test: test
 	./$(TEST_EXE)
 
 clean:
-	rm -f *.o *.exe log.txt demo_log.txt
+	rm -f *.o *.exe log.txt Collatz_Conjecture.txt
 
 rebuild: clean demo test

@@ -58,6 +58,9 @@ void testBasic()
 
     c.setSign(false);
     report(!c.getSign() && c.toString() == "50", "setSign", "changed -50 to 50");
+
+    c = "777";
+    report(c.toString() == "777", "String Assignment", "c = \"777\"");
 }
 
 void testArithmetic()
@@ -150,7 +153,7 @@ void testEdgeCases()
 int main()
 {
     logger.log("========================================");
-    logger.log("   BIGINTEGER UNIT TEST SUITE");
+    logger.log("   BIGINTEGER UNIT TESTS");
     logger.log("========================================");
 
     testBasic();
