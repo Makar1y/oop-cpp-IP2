@@ -77,6 +77,7 @@ namespace BigInt
         void makeEmpty();
         bool isEmpty() const;
         bool isZero() const;
+
     private:
         int count() const;
 

@@ -8,7 +8,7 @@
  * System requirements:
  *  `long` should be able to contain BINT_BASE ^ BINT_POW
  *  `long long` should be able to contain BINT_BASE ^ (BINT_POW * 2)
-*/
+ */
 #define BINT_BASE 10
 #define BINT_POW 9
 
@@ -18,7 +18,7 @@ namespace BigInt
     /**
      * @class BigInteger
      * @brief A class for large integer arithmetic.
-     * 
+     *
      * Handles large positive and negative integers using a linked list of digit blocks.
      */
     class BigInteger
@@ -58,7 +58,6 @@ namespace BigInt
          * @brief Destructor.
          */
         ~BigInteger();
-
 
         /**
          * @brief Get the sign of the BigInteger.

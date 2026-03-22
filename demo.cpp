@@ -10,7 +10,8 @@ using namespace BigInt;
 
 void CollatzConjecture();
 
-int main() {
+int main()
+{
     std::cout << "--- BigInteger Method Demonstration ---" << std::endl;
 
     // 1. BigInteger from string
@@ -103,7 +104,7 @@ int main() {
     std::stringstream ss;
     ss << "12345";
     BigInteger r;
-    ss >> r; // operator>>
+    ss >> r;                                             // operator>>
     std::cout << "Read from stream: " << r << std::endl; // operator<<
 
     // Collatz Conjecture for big num
@@ -112,7 +113,6 @@ int main() {
     std::cout << "--- Demonstration Complete ---" << std::endl;
     return 0;
 }
-
 
 void CollatzConjecture()
 {
