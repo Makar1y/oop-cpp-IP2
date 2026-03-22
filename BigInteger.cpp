@@ -73,12 +73,12 @@ namespace BigInt
         void stringToNum(const string &numberString);
         string toString() const;
         void copy(Inner &dest) const;
-        int count() const;
         void makeEmpty();
         bool isEmpty() const;
         bool isZero() const;
-
     private:
+        int count() const;
+
         static long long pow(const int num, const int pow);
         static int compare(const BigInteger &a, const BigInteger &b);
         void appendNode(const long digits);
@@ -382,7 +382,7 @@ namespace BigInt
         if (a.getSign() != b.getSign())
             return a.getSign() ? -1 : 1;
 
-        int countA = a.count(), countB = b.count();
+        int countA = a.impl->count(), countB = b.impl->count();
         if (countA > countB)
             return 1;
         if (countA < countB)
@@ -532,8 +532,8 @@ namespace BigInt
     BigInteger BigInteger::Inner::multiply(const BigInteger &a, const BigInteger &b)
     {
 
-        int countA = a.count(),
-            countB = b.count();
+        int countA = a.impl->count(),
+            countB = b.impl->count();
 
         if (countA == 0 || countB == 0)
         {
@@ -673,7 +673,7 @@ namespace BigInt
         {
             return BigInteger();
         }
-        if (b.count() == 1 && b.impl->getHigherDigits()->getDigits() == 1)
+        if (b.impl->count() == 1 && b.impl->getHigherDigits()->getDigits() == 1)
         {
             if (returnReminder)
             {
@@ -776,10 +776,6 @@ namespace BigInt
     void BigInteger::copy(BigInteger &dest) const
     {
         return impl->copy(*(dest.impl));
-    }
-    int BigInteger::count() const
-    {
-        return impl->count();
     }
     void BigInteger::makeEmpty()
     {

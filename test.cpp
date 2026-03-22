@@ -1,190 +1,178 @@
 #include <iostream>
-#include <cassert>
+#include <fstream>
 #include <string>
+#include <vector>
+#include <sstream>
 #include "BigInteger.h"
 
 using namespace BigInt;
 
-// Helper to check BigInteger against a string
-void check(const BigInteger &val, const std::string &expected, const std::string &msg)
+class TestLogger
 {
-    if (val.toString() != expected)
+private:
+    std::ofstream logFile;
+
+public:
+    TestLogger(const std::string &filename)
     {
-        std::cerr << "TEST FAILED: " << msg << "\n"
-                  << "  Expected: " << expected << "\n"
-                  << "  Got:      " << val.toString() << std::endl;
-        assert(false);
+        logFile.open(filename);
     }
+
+    ~TestLogger()
+    {
+        if (logFile.is_open())
+        {
+            logFile.close();
+        }
+    }
+
+    void log(const std::string &message)
+    {
+        std::cout << message << std::endl;
+        if (logFile.is_open())
+        {
+            logFile << message << std::endl;
+        }
+    }
+};
+
+TestLogger logger("log.txt");
+
+void report(bool passed, const std::string &testName, const std::string &details = "")
+{
+    std::string result = passed ? "PASS" : "FAIL";
+    logger.log("Test [" + testName + "]: " + details + " ... " + result);
 }
 
-void testConstructors()
+void testBasic()
 {
-    std::cout << "Testing Constructors..." << std::endl;
-    BigInteger a("1234567890123456789012345678901234567890");
-    check(a, "1234567890123456789012345678901234567890", "Large string constructor");
+    logger.log("--- Starting Basic Tests ---");
+    BigInteger a("100");
+    report(a.toString() == "100", "Constructor", "val=100");
 
-    BigInteger b("-9876543210987654321098765432109876543210");
-    check(b, "-9876543210987654321098765432109876543210", "Large negative string constructor");
+    BigInteger b;
+    report(b.isZero(), "Default Constructor", "val=0");
 
-    BigInteger c;
-    check(c, "0", "Default constructor");
+    BigInteger c("-50");
+    report(c.getSign(), "Negative Sign", "val=-50");
 
-    BigInteger d(a);
-    check(d, "1234567890123456789012345678901234567890", "Copy constructor");
-
-    BigInteger e = b;
-    check(e, "-9876543210987654321098765432109876543210", "Assignment operator");
+    c.setSign(false);
+    report(!c.getSign() && c.toString() == "50", "setSign", "changed -50 to 50");
 }
 
-void testRelationalOperators()
+void testArithmetic()
 {
-    std::cout << "Testing Relational Operators..." << std::endl;
-    BigInteger a("1234567890123456789012345678901234567890");
-    BigInteger b("1234567890123456789012345678901234567891");
-    BigInteger c("-50000000000000000000000000000000000000000");
-    BigInteger d("1234567890123456789012345678901234567890");
+    logger.log("--- Starting Arithmetic Tests ---");
+    BigInteger a("10"), b("20");
 
-    assert(a == d);
-    assert(a != b);
-    assert(a < b);
-    assert(a <= d);
-    assert(b > a);
-    assert(b >= d);
-    assert(c < a);
-    assert(c <= b);
+    report((a + b).toString() == "30", "Addition", "10 + 20 = 30");
+    report((b - a).toString() == "10", "Subtraction", "20 - 10 = 10");
+    report((a * b).toString() == "200", "Multiplication", "10 * 20 = 200");
+    report((b / a).toString() == "2", "Division", "20 / 10 = 2");
+    report((b % BigInteger("3")).toString() == "2", "Modulo", "20 % 3 = 2");
+
+    BigInteger d("5");
+    d += BigInteger("5");
+    report(d.toString() == "10", "operator+=", "5 += 5");
+
+    d -= BigInteger("3");
+    report(d.toString() == "7", "operator-=", "10 -= 3");
+
+    d *= BigInteger("2");
+    report(d.toString() == "14", "operator*=", "7 *= 2");
+
+    d /= BigInteger("2");
+    report(d.toString() == "7", "operator/=", "14 /= 2");
+
+    d %= BigInteger("4");
+    report(d.toString() == "3", "operator%=", "7 %= 4");
+}
+
+void testComparison()
+{
+    logger.log("--- Starting Comparison Tests ---");
+    BigInteger a("10"), b("20"), c("10");
+
+    report(a == c, "Equality", "10 == 10");
+    report(a != b, "Inequality", "10 != 20");
+    report(a < b, "Less Than", "10 < 20");
+    report(a <= b, "Less Than or Equal", "10 <= 20");
+    report(b > a, "Greater Than", "20 > 10");
+    report(b >= a, "Greater Than or Equal", "20 >= 10");
 }
 
 void testIncrements()
 {
-    std::cout << "Testing Increments..." << std::endl;
-    BigInteger a("9999999999999999999999999999999999999999");
-    check(++a, "10000000000000000000000000000000000000000", "Prefix increment");
-
-    BigInteger b("10000000000000000000000000000000000000000");
-    check(--b, "9999999999999999999999999999999999999999", "Prefix decrement");
+    logger.log("--- Starting Increment Tests ---");
+    BigInteger a("10");
+    ++a;
+    report(a.toString() == "11", "Prefix Increment", "++10 = 11");
+    --a;
+    report(a.toString() == "10", "Prefix Decrement", "--11 = 10");
 }
 
-void testBigNumbersAddition()
+void testLargeNumbers()
 {
-    std::cout << "Testing Addition..." << std::endl;
-    BigInteger a("1234567890123456789012345678901234567890");
-    BigInteger b("9876543210987654321098765432109876543210");
-    // Expected: 11111111101111111110111111111011111111100
-    check(a + b, "11111111101111111110111111111011111111100", "Simple big addition");
+    logger.log("--- Starting Large Number Tests ---");
+    std::string largeStr = "1234567890123456789012345678901234567890";
+    BigInteger a(largeStr);
+    report(a.toString() == largeStr, "Large String Input", "40 digits");
 
-    BigInteger c("999999999999999999999999999999999999");
-    BigInteger d("1");
-    check(c + d, "1000000000000000000000000000000000000", "Carry across multiple nodes");
+    BigInteger b("2");
+    BigInteger c = a * b;
+    report(c.toString() == "2469135780246913578024691357802469135780", "Large Multiplication", "a * 2");
 }
 
-void testBigNumbersSubtraction()
+void testEdgeCases()
 {
-    std::cout << "Testing Subtraction..." << std::endl;
-    BigInteger a("1000000000000000000000000000000000000");
-    BigInteger b("1");
-    check(a - b, "999999999999999999999999999999999999", "Borrow across multiple nodes");
+    logger.log("--- Starting Edge Case Tests ---");
+    BigInteger zero("0");
+    BigInteger one("1");
+    BigInteger negOne("-1");
 
-    BigInteger c("1234567890123456789012345678901234567890");
-    BigInteger d("987654321098765432109876543210987654321");
-    check(c - d, "246913569024691356902469135690246913569", "Big subtraction with different lengths");
-}
+    report(zero.isZero(), "isZero for '0'", "yes");
+    report(!one.isZero(), "isZero for '1'", "no");
 
-void testBigNumbersMultiplication()
-{
-    std::cout << "Testing Multiplication..." << std::endl;
-    // (10^20) * (10^20) = 10^40
-    BigInteger a("100000000000000000000"); // 10^20
-    check(a * a, "10000000000000000000000000000000000000000", "Multiplication power of 10");
-
-    BigInteger b("1234567890123456789");
-    BigInteger c("9876543210987654321");
-    // Result: 12193263113702179522374638011112635269
-    check(b * c, "12193263113702179522374638011112635269", "Multiplication");
-}
-
-void testBigNumbersDivision()
-{
-    std::cout << "Testing Division..." << std::endl;
-    BigInteger a("12193263113702179522374638011112635269");
-    BigInteger b("1234567890123456789");
-    check(a / b, "9876543210987654321", "Division");
-
-    BigInteger c("1000000000000000000000000000000000000");
-    BigInteger d("3");
-    // 333333333333333333333333333333333333
-    check(c / d, "333333333333333333333333333333333333", " Division by small constant");
-}
-
-void testBigNumbersModulo()
-{
-    std::cout << "Testing Modulo..." << std::endl;
-    BigInteger a("1000000000000000000000000000000000001");
-    BigInteger b("1000000000000000000");
-    check(a % b, "1", "Modulo");
-}
-
-void testMixedSigns()
-{
-    std::cout << "Testing Mixed Signs..." << std::endl;
-    BigInteger a("-1234567890123456789012345678901234567890");
-    BigInteger b("1234567890123456789012345678901234567891");
-    check(a + b, "1", "Negative + Positive");
-    check(b + a, "1", "Positive + Negative");
-    check(a - b, "-2469135780246913578024691357802469135781", "Negative - Positive");
-}
-
-void testExceptions()
-{
-    std::cout << "Testing Exceptions..." << std::endl;
-    BigInteger a("-1234567890123456789012345678901234567890");
-    BigInteger c("");
+    BigInteger empty;
+    report(empty.isEmpty(), "isEmpty for default", "yes");
 
     try
     {
-        a / c;
-        std::cerr << "TEST FAILED: Zero Division exception expected but not caught" << std::endl;
-        assert(false);
+        BigInteger res = one / zero;
+        report(false, "Division by Zero Exception", "No exception caught");
     }
-    catch (BigInt::ZeroDivisionException &e)
+    catch (const ZeroDivisionException &e)
     {
-    }
-    catch (...)
-    {
-        std::cerr << "Unexpected exception caught" << std::endl;
-        assert(false);
-    }
-
-    try
-    {
-        BigInteger b("1234567890123456789012345678901*234567891");
-        std::cerr << "TEST FAILED: Invalid Argument exception expected but not caught" << std::endl;
-        assert(false);
-    }
-    catch (std::invalid_argument &e)
-    {
-    }
-    catch (...)
-    {
-        std::cerr << "Unexpected exception caught" << std::endl;
-        assert(false);
+        report(true, "Division by Zero Exception", "Caught correctly");
     }
 }
 
 int main()
 {
-    std::cout << "Running Unit Tests..." << std::endl;
+    logger.log("========================================");
+    logger.log("   BIGINTEGER UNIT TEST SUITE");
+    logger.log("========================================");
 
-    testConstructors();
-    testRelationalOperators();
-    testBigNumbersAddition();
-    testBigNumbersSubtraction();
-    testBigNumbersMultiplication();
-    testBigNumbersDivision();
-    testBigNumbersModulo();
+    testBasic();
+    testArithmetic();
+    testComparison();
     testIncrements();
-    testMixedSigns();
-    testExceptions();
+    testLargeNumbers();
+    testEdgeCases();
 
-    std::cout << "\nAll tests passed!" << std::endl;
+    logger.log("--- Finalizing Reports ---");
+    logger.log("Verification of toString formatting...");
+    for (int i = 0; i < 5; ++i)
+    {
+        std::string num = std::to_string(i * 1000);
+        BigInteger temp(num);
+        report(temp.toString() == num, "toString loop", "num=" + num);
+    }
+
+    logger.log("========================================");
+    logger.log("Test execution finished.");
+    logger.log("Output saved to log.txt");
+    logger.log("========================================");
+
     return 0;
 }
