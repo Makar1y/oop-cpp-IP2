@@ -7,5 +7,5 @@ tests: test.cpp BigInteger.o BigInteger.h
 BigInteger.o: BigInteger.h BigInteger.cpp
 	g++ -std=c++14 -c -o  BigInteger.o BigInteger.cpp -Wall
 
-clean: BigInteger.o
+clean: BigInteger.o tests demo
 	rm *.o

@@ -6,8 +6,10 @@
 using namespace BigInt;
 
 // Helper to check BigInteger against a string
-void check(const BigInteger& val, const std::string& expected, const std::string& msg) {
-    if (val.toString() != expected) {
+void check(const BigInteger &val, const std::string &expected, const std::string &msg)
+{
+    if (val.toString() != expected)
+    {
         std::cerr << "TEST FAILED: " << msg << "\n"
                   << "  Expected: " << expected << "\n"
                   << "  Got:      " << val.toString() << std::endl;
@@ -15,7 +17,8 @@ void check(const BigInteger& val, const std::string& expected, const std::string
     }
 }
 
-void testConstructors() {
+void testConstructors()
+{
     std::cout << "Testing Constructors..." << std::endl;
     BigInteger a("1234567890123456789012345678901234567890");
     check(a, "1234567890123456789012345678901234567890", "Large string constructor");
@@ -28,12 +31,13 @@ void testConstructors() {
 
     BigInteger d(a);
     check(d, "1234567890123456789012345678901234567890", "Copy constructor");
-    
+
     BigInteger e = b;
     check(e, "-9876543210987654321098765432109876543210", "Assignment operator");
 }
 
-void testRelationalOperators() {
+void testRelationalOperators()
+{
     std::cout << "Testing Relational Operators..." << std::endl;
     BigInteger a("1234567890123456789012345678901234567890");
     BigInteger b("1234567890123456789012345678901234567891");
@@ -50,7 +54,8 @@ void testRelationalOperators() {
     assert(c <= b);
 }
 
-void testIncrements() {
+void testIncrements()
+{
     std::cout << "Testing Increments..." << std::endl;
     BigInteger a("9999999999999999999999999999999999999999");
     check(++a, "10000000000000000000000000000000000000000", "Prefix increment");
@@ -59,7 +64,8 @@ void testIncrements() {
     check(--b, "9999999999999999999999999999999999999999", "Prefix decrement");
 }
 
-void testBigNumbersAddition() {
+void testBigNumbersAddition()
+{
     std::cout << "Testing Addition..." << std::endl;
     BigInteger a("1234567890123456789012345678901234567890");
     BigInteger b("9876543210987654321098765432109876543210");
@@ -71,8 +77,9 @@ void testBigNumbersAddition() {
     check(c + d, "1000000000000000000000000000000000000", "Carry across multiple nodes");
 }
 
-void testBigNumbersSubtraction() {
-    std::cout << "Testing  Subtraction..." << std::endl;
+void testBigNumbersSubtraction()
+{
+    std::cout << "Testing Subtraction..." << std::endl;
     BigInteger a("1000000000000000000000000000000000000");
     BigInteger b("1");
     check(a - b, "999999999999999999999999999999999999", "Borrow across multiple nodes");
@@ -82,7 +89,8 @@ void testBigNumbersSubtraction() {
     check(c - d, "246913569024691356902469135690246913569", "Big subtraction with different lengths");
 }
 
-void testBigNumbersMultiplication() {
+void testBigNumbersMultiplication()
+{
     std::cout << "Testing Multiplication..." << std::endl;
     // (10^20) * (10^20) = 10^40
     BigInteger a("100000000000000000000"); // 10^20
@@ -94,7 +102,8 @@ void testBigNumbersMultiplication() {
     check(b * c, "12193263113702179522374638011112635269", "Multiplication");
 }
 
-void testBigNumbersDivision() {
+void testBigNumbersDivision()
+{
     std::cout << "Testing Division..." << std::endl;
     BigInteger a("12193263113702179522374638011112635269");
     BigInteger b("1234567890123456789");
@@ -106,14 +115,16 @@ void testBigNumbersDivision() {
     check(c / d, "333333333333333333333333333333333333", " Division by small constant");
 }
 
-void testBigNumbersModulo() {
+void testBigNumbersModulo()
+{
     std::cout << "Testing Modulo..." << std::endl;
     BigInteger a("1000000000000000000000000000000000001");
     BigInteger b("1000000000000000000");
     check(a % b, "1", "Modulo");
 }
 
-void testMixedSigns() {
+void testMixedSigns()
+{
     std::cout << "Testing Mixed Signs..." << std::endl;
     BigInteger a("-1234567890123456789012345678901234567890");
     BigInteger b("1234567890123456789012345678901234567891");
@@ -122,7 +133,45 @@ void testMixedSigns() {
     check(a - b, "-2469135780246913578024691357802469135781", "Negative - Positive");
 }
 
-int main() {
+void testExceptions()
+{
+    std::cout << "Testing Exceptions..." << std::endl;
+    BigInteger a("-1234567890123456789012345678901234567890");
+    BigInteger c("");
+
+    try
+    {
+        a / c;
+        std::cerr << "TEST FAILED: Zero Division exception expected but not caught" << std::endl;
+        assert(false);
+    }
+    catch (BigInt::ZeroDivisionException &e)
+    {
+    }
+    catch (...)
+    {
+        std::cerr << "Unexpected exception caught" << std::endl;
+        assert(false);
+    }
+
+    try
+    {
+        BigInteger b("1234567890123456789012345678901*234567891");
+        std::cerr << "TEST FAILED: Invalid Argument exception expected but not caught" << std::endl;
+        assert(false);
+    }
+    catch (std::invalid_argument &e)
+    {
+    }
+    catch (...)
+    {
+        std::cerr << "Unexpected exception caught" << std::endl;
+        assert(false);
+    }
+}
+
+int main()
+{
     std::cout << "Running Unit Tests..." << std::endl;
 
     testConstructors();
@@ -134,6 +183,7 @@ int main() {
     testBigNumbersModulo();
     testIncrements();
     testMixedSigns();
+    testExceptions();
 
     std::cout << "\nAll tests passed!" << std::endl;
     return 0;
