@@ -4,7 +4,11 @@
 #include <stdexcept>
 #define string std::string
 
-
+/**
+ * System requirements:
+ *  `long` should be able to contain BINT_BASE ^ BINT_POW
+ *  `long long` should be able to contain BINT_BASE ^ (BINT_POW * 2)
+*/
 #define BINT_BASE 10
 #define BINT_POW 9
 
