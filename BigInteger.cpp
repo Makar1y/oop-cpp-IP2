@@ -53,6 +53,8 @@ namespace BigInt
         BigIntegerData *LowerDigits;
         BigIntegerData *HigherDigits;
 
+        static long activeNumbersCount;
+
     public:
         Inner(const string &number = "");
         Inner(const Inner &other);
@@ -61,9 +63,12 @@ namespace BigInt
         ~Inner();
 
         bool getSign() const;
+        static long getActiveNumbersCount();
+    private:
         BigIntegerData *getLowerDigits() const;
         BigIntegerData *getHigherDigits() const;
-
+    
+    public:
         void setSign(const bool sign);
 
     private:
@@ -171,13 +176,17 @@ namespace BigInt
 
     // BigInteger Implementation
 
+    long BigInteger::Inner::activeNumbersCount = 0;
+
     BigInteger::Inner::Inner(const string &number) : sign(false), LowerDigits(nullptr), HigherDigits(nullptr)
     {
         stringToNum(number);
+        ++activeNumbersCount;
     }
     BigInteger::Inner::Inner(const Inner &other) : sign(false), LowerDigits(nullptr), HigherDigits(nullptr)
     {
         other.copy(*this);
+        ++activeNumbersCount;
     }
     BigInteger::Inner &BigInteger::Inner::operator=(const Inner &source)
     {
@@ -195,11 +204,17 @@ namespace BigInt
     BigInteger::Inner::~Inner()
     {
         this->makeEmpty();
+        --activeNumbersCount;
     }
 
     bool BigInteger::Inner::getSign() const
     {
         return this->sign;
+    }
+
+    long BigInteger::Inner::getActiveNumbersCount()
+    {
+        return activeNumbersCount;
     }
 
     BigIntegerData *BigInteger::Inner::getLowerDigits() const
@@ -770,6 +785,10 @@ namespace BigInt
     bool BigInteger::getSign() const
     {
         return impl->getSign();
+    }
+    long BigInteger::getActiveNumbersCount()
+    {
+        return BigInteger::Inner::getActiveNumbersCount();
     }
 
     void BigInteger::setSign(const bool sign)

@@ -66,6 +66,12 @@ namespace BigInt
         bool getSign() const;
 
         /**
+         * @brief Returns currently active number of BigInteger`s
+         * @return `long` number - how BigInteger`s currently created in memory
+        */
+        static long getActiveNumbersCount();
+
+        /**
          * @brief Set the sign of the `BigInteger`.
          * @param sign true for negative, false for positive/zero.
          */

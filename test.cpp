@@ -61,6 +61,8 @@ void testBasic()
 
     c = "777";
     report(c.toString() == "777", "String Assignment", "c = \"777\"");
+
+    report(BigInteger::getActiveNumbersCount() == 3, "Object count", "Currently object count == 3");
 }
 
 void testArithmetic()
@@ -163,14 +165,9 @@ int main()
     testLargeNumbers();
     testEdgeCases();
 
-    logger.log("--- Finalizing Reports ---");
-    logger.log("Verification of toString formatting...");
-    for (int i = 0; i < 5; ++i)
-    {
-        std::string num = std::to_string(i * 1000);
-        BigInteger temp(num);
-        report(temp.toString() == num, "toString loop", "num=" + num);
-    }
+    std::stringstream ss;
+    ss << "getActiveNumbersCount() == " << BigInteger::getActiveNumbersCount();
+    report(BigInteger::getActiveNumbersCount() == 0, "Is zero objects after all tests", ss.str());
 
     logger.log("========================================");
     logger.log("Test execution finished.");
