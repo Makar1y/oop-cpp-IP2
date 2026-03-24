@@ -67,7 +67,7 @@ namespace BigInt
     private:
         BigIntegerData *getLowerDigits() const;
         BigIntegerData *getHigherDigits() const;
-    
+
     public:
         void setSign(const bool sign);
 
@@ -246,6 +246,7 @@ namespace BigInt
     {
         size_t numLength = numberString.length();
         makeEmpty();
+
         if (numLength == 0)
         {
             return;
